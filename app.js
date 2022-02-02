@@ -3,9 +3,11 @@ const app = express();
 const bodyParser = require('body-parser');
 //require('dotenv/config');
 require('dotenv').config({path: process.env.NODE_ENV === "test" ? ".env.test" : ".env"})
+const oracledb = require('oracledb');
 const fileUpload = require('express-fileupload');
 const port = process.env.PORT;
 const swaggerUi = require('swagger-ui-express');
+const connection = require('./src/config/connection');
 const swaggerFile = require('./src/swagger/swagger_output.json');
 
 //IMPORTANDO ROTAS
@@ -13,6 +15,10 @@ const LogistcRoutes = require('./src/routes/LogisticRoutes')
 const ResgistrationRoutes = require('./src/routes/RegistrationRoutes')
 const PedidosRouter = require('./src/routes/PedidosRoutes')
 const ImagesRouter = require('./src/routes/ImageRoutes')
+const PixRouter = require('./src/routes/PixRoutes')
+const DuplicatasRouter = require('./src/routes/DuplicataRoutes')
+const AuthRouter = require('./src/routes/Auth')
+
 
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -40,19 +46,29 @@ app.use(function (req, res, next) {
     next();
 });
 
-
-
 //definindo as rotas
 const router = express.Router();
 app.use('/', router);
+app.use('/auth',AuthRouter)
 app.use('/logistica', LogistcRoutes);
 app.use('/cadastro', ResgistrationRoutes);
 app.use('/pedidos', PedidosRouter);
+app.use('/pix', PixRouter);
+app.use('/duplicatas', DuplicatasRouter);
 app.use('/images', ImagesRouter);
-app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
-
-  
-//inicia o servidor
+//INICIA O SERVIDOR
 app.listen(port);
-console.log('WINT_API FUNCIONANDO! - PORTA: ' + port);
+
+//ESTABELE UMA CONEXAO COM O BANCO ORACLE - WINTHOR
+connection.initOracleDbConection();
+
+//CHECA A CONEXAO JA REUTILIZANDO DO SPOOL CRIADO
+//connection.checkConnection();
+
+//CONSOLE LOG DO START
+console.log("-------------------------------------------------------------------------------------------------------------------------------------");
+console.log(process.env.NODE_ENV === "test" ? "''--------------------------------------------------------------AMBIENTE DE: HOMOLOGACAO" : "--------------------------------------------------------------AMBIENTE DE: #PRODUCAO#------------------------------------------------");
+console.log("---------------------------------------------# WINTHOR API ROFE DISTRIBUIDORA #------------------------------------------------------");
+console.log("-------------------------------------------------------------------------------------------------------------------------------------");

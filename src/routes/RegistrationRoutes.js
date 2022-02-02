@@ -61,4 +61,40 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
     
     })
 
+      //GET CLIENTE id
+  RegistrationRouter.get('/cliente/id/:id', function (req,res) {
+    const id=req.params.id
+    //console.log(req.body)
+    obj={"id":id}
+    console.log(obj)
+    if(id){
+      //res.json(obj)
+      //res.status(200)
+      functions.getClienteId(obj,req, res);   
+    }else{ 
+      res.json({"GET FUNC ERROR":codcli})
+      res.status(404)
+    }
+    
+    })
+
+          //GET CLIENTE BUSCA POR NOME
+  RegistrationRouter.get('/cliente/nome/:nome', function (req,res) {
+    const nome=req.params.nome
+    if(nome!=null){
+      //res.json(obj)
+      //res.status(200)
+      obj={"nome":'%'+nome+'%'}
+      functions.getClienteNome(obj,req, res);
+    }else{
+      res.json({"nome":nome,"msg":"digite mais campos"})
+      //res.status(404) 
+    }    
+    })
+
+      //GET CLIENTE ATIVOS
+      RegistrationRouter.get('/clientes', function (req,res) {     
+          functions.getClientes(req, res);   
+        })
+
 module.exports=RegistrationRouter

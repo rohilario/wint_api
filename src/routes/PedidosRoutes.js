@@ -25,7 +25,7 @@ PedidosRouter.post('/numped', function (req,res) {
         if(numcar){
           //res.json(obj)
           res.status(200)
-          getNumpedFilial(obj,req, res);   
+          functions.getNumpedFilial(obj,req, res);   
         }else{ 
           res.json({"ERROR":numcar})
           res.status(404)
@@ -46,12 +46,46 @@ PedidosRouter.post('/numped', function (req,res) {
     if(codfilial){
       //res.json(obj)
       res.status(200)
-      updatePedidoFilial(obj,req, res);   
+      functions.updatePedidoFilial(obj,req, res);   
     }else{ 
       res.json({"UPDATE EMBALAGEM MASTER ERROR":codfilial})
       res.status(404)
     }
     
     })
+
+//PEDIDOS FRENTE DE LOJA - CAIXA - 1432
+PedidosRouter.get('/balcaoreserva/codfilial/:codfilial', function (req,res) {
+  //const date=req.params.numped
+  const codfilial=req.params.codfilial
+  //const date=req.body.date
+  obj={"codfilial":codfilial}
+  if(codfilial){
+    //res.json(obj)
+    res.status(200)
+    functions.PedidosFrenteLoja(obj,req, res);   
+  }else{ 
+    res.json({"ERROR":codprod})
+    res.status(404)
+  }
+  
+  })
+
+  //PEDIDOS FRENTE DE LOJA VENDEDOR BALCAO
+PedidosRouter.get('/balcaoreserva/rca/codfilial/:codfilial', function (req,res) {
+  //const date=req.params.numped
+  const codfilial=req.params.codfilial
+  //const date=req.body.date
+  obj={"codfilial":codfilial}
+  if(codfilial){
+    //res.json(obj)
+    res.status(200)
+    functions.PedidosRca(obj,req, res);   
+  }else{ 
+    res.json({"ERROR":codprod})
+    res.status(404)
+  }
+  
+  })
 
 module.exports=PedidosRouter

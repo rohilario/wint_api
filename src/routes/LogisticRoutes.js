@@ -24,9 +24,9 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
     })
   
   //GET PRODUTOS OS POR CARGA
-  LogisticRouter.get('/os/numcar/:numcar', function (req,res) {
+  LogisticRouter.get('/os/numcar/:codfilial/:numcar', function (req,res) {
     const numcar=req.params.numcar
-    const codfilial=req.body.codfilial
+    const codfilial=req.params.codfilial
     //console.log(numos)
     obj={
       "numcar":numcar,
@@ -43,5 +43,17 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
     }
     
     })
+
+    LogisticRouter.put('/finalizaos1759/os/numcar/:numcar', function (req,res) {
+      const numcar=req.params.numcar
+      const codfunc=req.body.codfunc
+      //console.log(numcar,codfunc)
+      obj={numcar:numcar,codfunc:codfunc}
+      //res.json(obj)
+      console.log(obj)
+      funcao.FinalizaOS1759(obj,req,res);
+      //res.json("DADOS ATUALIZADOS COM SUCESSO!")
+      })
+      
 
 module.exports = LogisticRouter
