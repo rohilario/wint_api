@@ -88,4 +88,38 @@ PedidosRouter.get('/balcaoreserva/rca/codfilial/:codfilial', function (req,res) 
   
   })
 
+   //PEDIDOS FRENTE DE LOJA VENDEDOR BALCAO
+PedidosRouter.get('/entrega/rca/codfilial/:codfilial', function (req,res) {
+  //const date=req.params.numped
+  const codfilial=req.params.codfilial
+  //const date=req.body.date
+  obj={"codfilial":codfilial}
+  if(codfilial){
+    //res.json(obj)
+    res.status(200)
+    functions.PedidosRca(obj,req, res);   
+  }else{ 
+    res.json({"ERROR":codprod})
+    res.status(404)
+  }
+  
+  })
+
+     //PEDIDOS FRENTE DE LOJA VENDEDOR BALCAO
+PedidosRouter.post('/liberacao/codfilial/:codfilial/:numped', function (req,res) {
+  const codfilial=req.params.codfilial
+  const numped=req.params.numped
+  const posicao = req.body.posicao
+  obj={"codfilial":codfilial,"numped":numped,"posicao":posicao}
+  if(codfilial){
+    //res.json(obj)
+    //res.status(200)
+    functions.LiberaPedido(obj,req, res);   
+  }else{ 
+    res.json({"ERROR":codprod})
+    res.status(404)
+  }
+  
+  })
+
 module.exports=PedidosRouter

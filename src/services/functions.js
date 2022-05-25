@@ -1,6 +1,8 @@
 const oracledb = require('oracledb');
 const fs = require('fs');
 const path = require('path');
+const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 //GET USER WINTHOR POR MATRICULA
 async function getFunc(parameter,req, res){
@@ -560,13 +562,13 @@ async function PedidosFrenteLoja(parameter,req, res){
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
     result = await connection.execute(
-    `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,M.POSICAO AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
+    `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,M.POSICAO AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE
     FROM PCPEDC P, PCCLIENT C, PCMOVENDPEND M
     WHERE C.CODCLI=P.CODCLI AND P.NUMPED=M.NUMPED
     AND P.POSICAO='M' AND P.ORIGEMPED='R' AND M.POSICAO = 'C'
     --AND P.DATA=:1 
     AND P.CODFILIAL=:1
-    GROUP BY M.POSICAO,P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT`,[parameter.codfilial]);
+    GROUP BY M.POSICAO,P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT,C.EMAILNFE`,[parameter.codfilial]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET PEDIDO FRENTE DE LOJA');
@@ -585,6 +587,7 @@ async function PedidosFrenteLoja(parameter,req, res){
                   ORIGEMPED:newsql[7],
                   POSICAOOS:newsql[8],
                   CPFCNPJ:newsql[9],
+                  EMAILNFE:newsql[10],
                   
           }
       })
@@ -623,13 +626,13 @@ async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
     result = await connection.execute(
-    `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
+    `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE
     FROM PCPEDC P, PCCLIENT C
     WHERE C.CODCLI=P.CODCLI
     AND P.POSICAO IN ('B','L','M') AND P.ORIGEMPED='R'
     --AND P.DATA=:1 
     AND P.CODFILIAL=:1
-    GROUP BY P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT`,[parameter.codfilial]);
+    GROUP BY P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT,C.EMAILNFE`,[parameter.codfilial]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET PEDIDO FRENTE DE LOJA');
@@ -648,6 +651,7 @@ async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
                   ORIGEMPED:newsql[7],
                   POSICAOOS:newsql[8],
                   CPFCNPJ:newsql[9],
+                  EMAILNFE:newsql[10],
                   
           }
       })
@@ -689,8 +693,9 @@ async function PedidosRca(parameter,req, res){
     `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
     FROM PCPEDC P, PCCLIENT C
     WHERE C.CODCLI=P.CODCLI
-    AND P.POSICAO IN ('B','L','P') AND P.ORIGEMPED IN ('F','T','W')
-    --AND P.DATA=:1 
+    AND P.POSICAO IN ('B','L','P','M') AND P.ORIGEMPED IN ('F','T','W')
+    --AND P.DATA=:1
+    --AND C.MOTIVOBLOQ NOT LIKE '%Cliente bloqueado, pois existia pelo menos um título em atraso%' 
     AND P.CODFILIAL=:1
     GROUP BY P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT`,[parameter.codfilial]);
     if (result.rows.length == 0) {
@@ -737,7 +742,7 @@ async function PedidosRca(parameter,req, res){
 
   //INSERT PIX GERADOS - FRENTE DE LOJA
   async function InsertPix(parametro,req, res) {
-    //console.log(parametro)
+    console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
       connection = await oracledb.getConnection({
@@ -768,13 +773,13 @@ async function PedidosRca(parameter,req, res){
           }
         }else{
           console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
-          return res.send(result)
+          return res.status(400).send(result)
         }
                    
     } catch (err) {
       //send error message
       console.error(err.message + ' - InsertPix');
-      return  res.send(result) 
+      return  res.send(err) 
     } finally {
       if (connection) {
         try {
@@ -902,7 +907,7 @@ async function PedidosRca(parameter,req, res){
                 
                 console.log(parametro.codcli,parametro.codfilial,parametro.valor,parametro.matricula,
                   hora,minuto,historico,parametro.matricula,parametro.numped,
-                  proxcodigo[0].proxcodigo,proxnumcred[0].proxnumcred)
+                  proxcodigo[0].proxcodigo,proxnumcred[0].proxnumcred,parametro.situacao)
                 result_insert_pccrecli = await connection.execute(`INSERT INTO PCCRECLI  
                 (CODCLI       	      
                 ,	DTLANC	            
@@ -919,12 +924,13 @@ async function PedidosRca(parameter,req, res){
                 ,	NUMTRANS	        	      
                 ,	CODROTINA	                     
                 ,	CODIGO                
-                ,	NUMCRED)    	             
+                ,	NUMCRED
+                , SITUACAO)    	             
                 VALUES        	      
-                (:1,TRUNC(SYSDATE),:2,:3,:4,:5,:6,'CRED. AUTO. BAIXA PIX - FRENTE DE LOJA',:7,:8,'S',1,(SELECT NVL(PROXNUMTRANS,1)+1 AS PROXNUMTRANS FROM PCCONSUM P),618,:9,:10)`,
+                (:1,TRUNC(SYSDATE),:2,:3,:4,:5,:6,'CRED. AUTO. BAIXA PIX',:7,:8,'S',1,(SELECT NVL(PROXNUMTRANS,1)+1 AS PROXNUMTRANS FROM PCCONSUM P),618,:9,:10,:11)`,
               [parametro.codcli,parametro.codfilial,parametro_valor_fmt,parametro.matricula,
               hora,minuto,parametro.matricula,parametro.numped,
-              proxcodigo[0].proxcodigo,proxnumcred[0].proxnumcred]);
+              proxcodigo[0].proxcodigo,proxnumcred[0].proxnumcred,parametro.situacao]);
               console.log('REGISTRO DE CREDITO LANCADO COM SUCESSO')
               console.log(result_insert_pccrecli)
             }
@@ -955,7 +961,7 @@ async function PedidosRca(parameter,req, res){
   }
   //BAIXA PIX NO WINTHOR - RETORNO PAGAMENTO
   async function UpdatePixBaixa(parametro,req, res) {
-    console.log(parametro)
+    //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
       connection = await oracledb.getConnection({
@@ -1054,6 +1060,7 @@ async function DuplicatasAbertas(parameter,req, res){
     ,CASE WHEN P.DTVENC<SYSDATE THEN (CASE WHEN DU.DIAFINANCEIRO='N' THEN (SELECT COUNT(*) FROM PCDIASUTEIS D WHERE D.CODFILIAL=P.CODFILIAL AND D.DIAFINANCEIRO='S' AND D.DATA BETWEEN P.DTVENC AND SYSDATE) ELSE (SELECT COUNT(*) FROM PCDIASUTEIS D WHERE D.CODFILIAL=P.CODFILIAL AND D.DIAFINANCEIRO='S' AND D.DATA BETWEEN P.DTVENC AND SYSDATE) END) ELSE 0 END AS QTDIAS_JUROS_DIAS_UTEIS
     ,CASE WHEN P.DTVENC<SYSDATE THEN (((5*P.VALOR)/100)/30) ELSE 0 END AS VLMORA
     ,(P.VALOR + (CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END) + ((CASE WHEN P.DTVENC<SYSDATE THEN ROUND((SYSDATE-P.DTVENC)-1) ELSE 0 END) * CASE WHEN P.DTVENC<SYSDATE THEN (((5*P.VALOR)/100)/30) ELSE 0 END ) ) AS VLJUROSMULTADIASCORRIDOS
+    ,C.EMAILNFE AS EMAIL
     FROM PCPREST P,PCCLIENT C, PCDIASUTEIS DU 
     WHERE DU.DATA=P.DTVENC AND DU.CODFILIAL=P.CODFILIAL --AND DU.DIAFINANCEIRO='S'
     AND P.CODCLI=C.CODCLI AND P.DTPAG IS NULL 
@@ -1081,6 +1088,7 @@ async function DuplicatasAbertas(parameter,req, res){
                   QTDIASUTEIS:newsql[11],
                   VLMORA:newsql[12],
                   VLTOTALJUROSMULTA:newsql[13],
+                  EMAIL:newsql[14],
           }
       })
       //console.log(session)
@@ -1155,7 +1163,7 @@ async function getClienteNome(parameter,req, res){
     if(parameter.nome.length>'6'){
     console.log('CONCETADO NO BANCO! -- GET CLIENTE NOME ' + parameter.nome);
     // run query to get all employees
-    result = await connection.execute(`SELECT C.CODCLI,C.CLIENTE,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT FROM PCCLIENT C WHERE C.CLIENTE LIKE UPPER(:1) `,[parameter.nome]);
+    result = await connection.execute(`SELECT C.CODCLI,C.CLIENTE,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE AS EMAILNFE FROM PCCLIENT C WHERE C.CLIENTE LIKE UPPER(:1) `,[parameter.nome]);
     }else{
       console.log('DIGITE MAIS CARACTERES')
     }
@@ -1284,6 +1292,386 @@ async function getPixWinthor(parameter,req, res){
   }
 }
 
+function DisparoEmail(config,parametro,req,res){
+  //console.log(config)
+  let renegociado=parametro.duplicatas.map(dup => `Duplicata: ${dup.duplicata} \r\nPrestacao: ${dup.prest}\r\nValor:${dup.valor}\r\nValor Total Juros/Multa:${dup.vltotaljurosmora}\r\n`).join()
+  console.log(parametro.duplicatas)
+  var transporter = nodemailer.createTransport({
+  host: config.host,
+  port: config.port,
+  secure: config.secure,
+  auth: {
+    user: config.user,
+    pass: config.pass
+  }
+});
+var mailOptions = {
+  from: config.from,
+  to: config.to,
+  cc: [
+    {address: config.cc1},
+    {address: config.cc2},
+    //{address: 'rodrigo.hilario@rofedistribuidora.com.br'}
+],
+  
+  bco: config.bco,
+  replyTo: config.user,
+  subject: config.subject,
+  text: config.subject,
+  html:
+  `<table align="center" border="0" cellpadding="0" cellspacing="0" id="bodyTable" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:#e4e4e4; border-collapse:collapse; height:100%; margin:0; mso-table-lspace:0pt; mso-table-rspace:0pt; padding:0; width:100%">
+	<tbody>
+		<tr>
+			<td style="height:100%; width:100%">
+			<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+				<tbody>
+					<tr>
+						<td style="background-color:transparent"><!--[if (gte mso 9)|(IE)]><table border='0' cellpadding='0' cellspacing='0' width='600' style='width:600px' class='sectionContainerIE'> <tr> <td valign='top' align='center' width='600' style='width:600px;'><![endif]-->
+						<table border="0" cellpadding="0" cellspacing="0" class="sectionContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:transparent; border-collapse:collapse; max-width:600px !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+							<tbody>
+								<tr>
+									<td>
+									<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:600px">
+										<tbody>
+											<tr>
+												<td>
+												<table border="0" cellpadding="0" cellspacing="0" class="columnContainerSize" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:transparent; border-collapse:collapse; max-width:600px !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td><!--[if (gte mso 9)|(IE)]><table align='center' border='0' cellspacing='0' cellpadding='0' width='600' style='width:600px;'> <tr> <td align='center' valign='top' width='390' style='width:390px;'><![endif]-->
+															<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:390px">
+																<tbody>
+																	<tr>
+																		<td style="text-align:left; vertical-align:top">&nbsp;</td>
+																	</tr>
+																</tbody>
+															</table>
+															<!--[if (gte mso 9)|(IE)]></td> <td align='center' valign='top' width='210' style='width:210px;'><![endif]-->
+
+															<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:210px">
+															</table>
+															<!--[if (gte mso 9)|(IE)]></td> </tr> </table><![endif]--></td>
+														</tr>
+													</tbody>
+												</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<!--[if (gte mso 9)|(IE)]></td> </tr> </table><![endif]--></td>
+					</tr>
+					<tr>
+						<td style="background-color:transparent"><!--[if (gte mso 9)|(IE)]><table border='0' cellpadding='0' cellspacing='0' width='600' style='width:600px' class='sectionContainerIE'> <tr> <td valign='top' align='center' width='600' style='width:600px;'><![endif]-->
+						<table border="0" cellpadding="0" cellspacing="0" class="sectionContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:#ffffff; border-collapse:collapse; max-width:600px !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+							<tbody>
+								<tr>
+									<td>
+									<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:600px">
+										<tbody>
+											<tr>
+												<td>
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td><img alt="" src="https://cdn.rofedistribuidora.com/images/VENDA.png" width="600" /></td>
+														</tr>
+													</tbody>
+												</table>
+
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>
+															<table border="0" cellpadding="0" cellspacing="0" style="border-collapse:initial; border-top-color:#eaeaea; border-top-style:solid; border-top-width:2px; min-width:100%; width:100%">
+																<tbody>
+																	<tr>
+																		<td>&nbsp;</td>
+																	</tr>
+																</tbody>
+															</table>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>
+															<h1 style="text-align: center;">${parametro.codcli} - ${parametro.cliente}</h1>
+
+															<p style="text-align: center;"><span style="color:#008000"><strong>SEU PAGAMENTO PIX FOI REALIZADO COM SUCESSO!</strong></span></p>
+
+															<p style="text-align: center;"><strong>DADOS DO PEDIDO -&nbsp;</strong></p>
+
+															<p style="text-align:center"><strong>NUMERO DO PEDIDO:</strong> ${parametro.numped}</p>
+
+															<p style="text-align:center"><strong>CLIENTE: </strong>${parametro.cliente}</p>
+
+															<p style="text-align:center"><strong>EMAIL CLIENTE:</strong> ${config.to}</p>
+
+															<p style="text-align:center"><strong>TOTAL PEDIDO:</strong> ${parametro.vlpedido}</p>
+
+                              <p style="text-align:center"><strong>VALOR PIX:</strong> ${parametro.vlpix}</p>
+
+															<p style="text-align:center"><strong>PIX:</strong> ${parametro.txid}</p>
+
+															<p style="text-align:center"><strong>ID PAGAMENTO:</strong> ${parametro.endtoend}</p>
+
+															<p style="text-align:center"><strong>FILIAL: </strong>${parametro.codfilial}</p>
+
+                              <p style="text-align:center"><strong>DUPLICATAS NEGOCIADAS: </strong>${renegociado}</p>
+
+															<p>&nbsp;</p>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+												&nbsp;
+
+												<table border="0" cellpadding="0" cellspacing="0" class="componentContainerButton" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:transparent; border-collapse:collapse; min-width:100%; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>
+															<table border="0" cellpadding="0" cellspacing="0" class="componentBlockButton" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:#2dbe60; border-collapse:separate !important; border-radius:29px; border:0px none #000000; mso-table-lspace:0pt; mso-table-rspace:0pt">
+																<tbody>
+																</tbody>
+															</table>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>
+															<p style="text-align: center;"><strong>⚠️ Todas as informa&ccedil;&otilde;es s&oacute; poder&atilde;o ser acessadas e enviadas para o e-mail cadastrado na base da ROFE.</strong></p>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>
+															<p style="text-align:center"><img alt="" src="https://d335luupugsy2.cloudfront.net/cms/files/377795/1632229245/$ynkfhafd1y" width="100" /></p>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+
+												<table border="0" cellpadding="0" cellspacing="0" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+													<tbody>
+														<tr>
+															<td>&nbsp;</td>
+														</tr>
+													</tbody>
+												</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<!--[if (gte mso 9)|(IE)]></td> </tr> </table><![endif]--></td>
+					</tr>
+					<tr>
+						<td style="background-color:transparent"><!--[if (gte mso 9)|(IE)]><table border='0' cellpadding='0' cellspacing='0' width='600' style='width:600px' class='sectionContainerIE'> <tr> <td valign='top' align='center' width='600' style='width:600px;'><![endif]-->
+						<table border="0" cellpadding="0" cellspacing="0" class="sectionContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:transparent; border-collapse:collapse; max-width:600px !important; mso-table-lspace:0pt; mso-table-rspace:0pt; width:100%">
+							<tbody>
+								<tr>
+									<td>
+									<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:600px">
+										<tbody>
+											<tr>
+												<td>
+												<table align="left" border="0" cellpadding="0" cellspacing="0" class="columnContainer" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:600px">
+													<tbody>
+														<tr>
+															<td style="text-align:center">
+															<p>Enviado por<span style="color:#0000CD"> $<strong>${config.user}</strong></span></p>
+
+															<p>Av. Engenheiro Emiliano Macieira, 05 - Pedrinhas. S&atilde;o Lu&iacute;s/MA. CEP 65.095-603 - CNPJ 05.300.197/0001-06</p>
+															<span style="color:#ffffff; font-size:1px">&bull;</span></td>
+														</tr>
+													</tbody>
+												</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<!--[if (gte mso 9)|(IE)]></td> </tr> </table><![endif]--></td>
+					</tr>
+				</tbody>
+			</table>
+			</td>
+		</tr>
+	</tbody>
+</table>
+   
+  `
+};
+
+transporter.sendMail(mailOptions, function(error, info){
+  if (error) {
+    console.log('Erro ao disparar email! - ' + error);
+    res.status(500)
+    res.json({"status":500,"response":error,"text":"EMAIL NAO ENVIADO"})
+  } else {
+    console.log('NOTIFICANDO POR EMAIL.. ');
+    console.log('EMAIL ENVIADO SOM SUCESSO!' + info.response);
+    res.status(200)
+    res.json({"status":200,"response":info.response,"text":"EMAIL ENVIADO COM SUCESSO!"})
+
+  }
+});
+}
+
+  //LIBERA PEDIDO - RETORNO PAGAMENTO
+  async function LiberaPedido(parametro,req, res) {
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+        console.log('CONECTADO NO BANCO - LIBERA PEDIDO ');
+        result_posicao_pedido=await connection.execute(`SELECT P.POSICAO FROM PCPEDC P WHERE P.NUMPED=:1`,[parametro.numped]);
+        
+        console.log(result_posicao_pedido.rows.length)
+        //send all employees
+        const doubles = result_posicao_pedido.rows.map(function(newsql) {
+            return {posicao:newsql[0]
+            }
+        })
+        console.log('POSICAO DO PEDIDO: ' + doubles[0].posicao)
+        if(result_posicao_pedido.rows.length>0){
+          if(doubles[0].posicao=='B' || doubles[0].posicao=='P'){
+            console.log(parametro)
+            result_update_pedido = await connection.execute(`UPDATE PCPEDC P SET P.POSICAO='L',P.DTLIBERA=SYSDATE,P.CODFUNCLIBERA=5555 WHERE P.NUMPED=:1`,
+            [parametro.numped]
+            ,{autoCommit: true});
+
+            result_update_pedidoi = await connection.execute(`UPDATE PCPEDI I SET I.POSICAO='L' WHERE I.NUMPED=:1`,
+            [parametro.numped]
+            ,{autoCommit: true});
+            
+              if (result_update_pedido.affectedRows == 0) {
+              console.log('NENHUM PEDIDO ATUALIZADO! - ' + result_update_pedido);
+              } else {
+              console.log('PEDIDO ATUALIZADO COM SUCESSO')
+              console.log(result_update_pedido)
+              return res.send(result_update_pedido)
+              }
+            }else{
+              console.log("PEDIDO NA POSICAO DIFERENTE DA POSICAO B E P -- NADA A FAZER")
+              return res.send("PEDIDO NA POSICAO DIFERENTE DA POSICAO B E P -- NADA A FAZER")
+            }
+        }else{
+          console.log('NENHUM PEDIDO ENCONTRADO')
+          //return res.send(result_update_pedido)
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - LIBERA PEDIDO ');
+      return  res.send(err);
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - LIBERA PEDIDO ');
+        } catch (err) {
+          console.error(err.message + ' LIBERA PEDIDO ');
+        }
+      }
+    }
+  }
+
+  async function Milvus(objmilvus,req,res){
+    console.log("ABRINDO CONEXAO COM O MILVUS... -- GET MILVUS")
+    axios({method: 'post',url:'https://apiintegracao.milvus.com.br/api/relatorio-personalizado/exportar',
+    headers: {
+      //"Content-Type":"application/json",
+      "Authorization":objmilvus.token,
+      'Access-Control-Allow-Origin' : '*',
+    }, 
+    data: {
+      "nome":"POWERBI",
+      "tipo": "csv"
+    },
+    }).then(response => {
+      let milvusresponse=response.data;
+      let csv=milvusresponse;
+      var array = response.data.toString().split("\n");
+      //let array2 = array.toString().split("\n");
+      //console.log(array[1])
+
+      // console.log(array[1])
+      // const doubles = array.map(function(newsql) {
+      //   return {ticket:newsql[0],teste:newsql[1],teste2:newsql[2]}
+      // })
+      //console.log(doubles)
+ 
+// All the rows of the CSV will be
+// converted to JSON objects which
+// will be added to result in an array
+let result = [];
+ 
+// The array[0] contains all the
+// header columns so we store them
+// in headers array
+let headers = array[0].split("\n");
+
+let headers_split = headers.toString().split(";")
+
+for (let i = 1; i < array.length - 1; i++) {
+  let row_split = array[i].toString().split(";")
+  let obj = {}
+
+  //console.log(row_split)
+  
+  // obj[headers_split[0]] = row_split[0]
+  // obj[headers_split[1]] = row_split[1]
+  for(let j=0; j < headers_split.length; j++) {
+    obj[headers_split[j].toString().replace(/\"| /g, "")] = row_split[j].toString().replace(/\"|\\n|\\r/g, "")
+  }
+  result.push(obj)
+}
+ 
+// Convert the resultant array to json and
+// generate the JSON output file.
+
+let json = JSON.stringify(result);
+let json2 = JSON.stringify(array[2]);
+
+      console.log("DADOS ENCONTRADOS")
+      res.json(result)
+      res.status(200)
+      console.log("CONEXAO COM O MILVUS FECHADA COM SUCESSO -- GET MILVUS ")
+      
+      errorData=null;
+          }).catch(error => {
+            console.log("CONEXAO FECHADA -- GET MILVUS")
+            errorData=error
+            console.log('ERROR:' + error)
+        });      
+  }
+
   module.exports={
     getFunc:getFunc,
     getNumpedFilial:getNumpedFilial,
@@ -1307,4 +1695,7 @@ async function getPixWinthor(parameter,req, res){
     PedidosFrenteLojaVendedorBalcao:PedidosFrenteLojaVendedorBalcao,
     PedidosRca:PedidosRca,
     getPixWinthor:getPixWinthor,
+    DisparoEmail:DisparoEmail,
+    LiberaPedido:LiberaPedido,
+    Milvus:Milvus,
   }

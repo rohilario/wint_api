@@ -18,7 +18,11 @@ const ImagesRouter = require('./src/routes/ImageRoutes')
 const PixRouter = require('./src/routes/PixRoutes')
 const DuplicatasRouter = require('./src/routes/DuplicataRoutes')
 const AuthRouter = require('./src/routes/Auth')
-
+const CreditoRouter = require('./src/routes/CreditoRoutes')
+const ActionRouter = require('./src/routes/ActionsRoutes')
+const MilvusRouter = require('./src/routes/MilvusRoutes')
+const SmarketingRouter = require('./src/routes/SmarketingRoutes')
+const PixBradescoRoutes = require('./src/routes/PixBradescoRoutes')
 
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -50,12 +54,18 @@ app.use(function (req, res, next) {
 const router = express.Router();
 app.use('/', router);
 app.use('/auth',AuthRouter)
+app.use('/actions',ActionRouter)
 app.use('/logistica', LogistcRoutes);
 app.use('/cadastro', ResgistrationRoutes);
 app.use('/pedidos', PedidosRouter);
 app.use('/pix', PixRouter);
 app.use('/duplicatas', DuplicatasRouter);
+app.use('/credito',CreditoRouter);
 app.use('/images', ImagesRouter);
+app.use('/milvus', MilvusRouter);
+app.use('/smarketing',SmarketingRouter);
+app.use('/pix/bradesco',PixBradescoRoutes);
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 //INICIA O SERVIDOR

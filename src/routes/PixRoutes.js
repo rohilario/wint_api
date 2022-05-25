@@ -55,6 +55,7 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
       const codbanco=req.body.codbanco
       const valor=req.body.valor
       const matricula=req.body.matricula
+      const situacao=req.body.situacao
 
       obj={
         "numped":numped,
@@ -63,7 +64,8 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
         "codhistorico":codhistorico,
         "codbanco":codbanco,
         "valor":valor,
-        "matricula":matricula
+        "matricula":matricula,
+        "situacao":situacao
       }
   
       if(obj){
