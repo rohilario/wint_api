@@ -4,6 +4,55 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 
+  //GET USER WINTHOR POR NOME
+  async function getUserAuth(req, res, auth){
+    //console.log(auth)
+    let connection;
+    
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+      console.log('CONCETADO NO BANCO! -- GET USER AUTH');
+      result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1) FROM PCEMPR R WHERE 
+      R.USUARIOBD=:1 --AND LTRIM(RTRIM(UPPER(R.USUARIOBD))) = :1
+      AND R.DT_EXCLUSAO IS NULL AND R.SITUACAO='A' AND R.CODSETOR=8 AND R.USUARIOBD=:1`,[auth.usr]);
+  
+      if (result.rows.length == 0) {
+        //query return zero employees
+        return [{nome:null,pass:null,msg:'NAO FOI LOCALIZADO NENHUM REGISTRO PARA OS PARAMETROS INFORMADOS'}]//res.json('NENHUM REGISTRO ENCONTRADO -- GET CLIENTE NOME');
+      } else {
+        //send all employees
+        const user = result.rows.map(function(newsql) {
+            return {
+                    nome:newsql[0],
+                    nomeguerra:newsql[1],
+                    pass:newsql[2],
+            }
+        })
+        //console.log(user[0])
+        console.log('AUTENTICADO COM SUCESSO! -- GET USER AUTH')
+        return user;
+      }
+    
+    } catch (err) {
+      //send error message
+      return res.send(err.message);
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          //await connection.close();
+          //console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE NOME');
+        } catch (err) {
+          console.error(err.message);
+        }
+      }
+    }
+  }
+
 //GET USER WINTHOR POR MATRICULA
 async function getFunc(parameter,req, res){
     try {
@@ -556,9 +605,9 @@ async function PedidosFrenteLoja(parameter,req, res){
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
-    session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
-    alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
-    after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    //session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    //alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
+    //after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
     result = await connection.execute(
@@ -593,7 +642,7 @@ async function PedidosFrenteLoja(parameter,req, res){
       })
       //console.log(session)
       //console.log(alter_session)
-      //console.log(after_session)
+      console.log(doubles)
       return res.send(doubles);
     }
   } catch (err) {
@@ -742,7 +791,7 @@ async function PedidosRca(parameter,req, res){
 
   //INSERT PIX GERADOS - FRENTE DE LOJA
   async function InsertPix(parametro,req, res) {
-    console.log(parametro)
+    //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
       connection = await oracledb.getConnection({
@@ -753,16 +802,16 @@ async function PedidosRca(parameter,req, res){
     
         console.log('CONECTADO NO BANCO - InsertPix');
         if(parametro.txid!=null  && parametro.codfilial!=null){
-          //console.log(parametro)
+          console.log(parametro)
           result = await connection.execute(`INSERT INTO PIX(
             pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
-            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time) 
+            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
             VALUES (
             (SELECT (MAX(P.PIXID)+1) FROM PIX P),:1,:2,:3,:4,
-            :5,:6,:7,:8,:9,:10,:11,:12,:13)`,
+            :5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)`,
             [parametro.txid,parametro.numped,parametro.vlpix,parametro.cpfcnpj,parametro.txtimgqrcode
             ,parametro.numrevisao,parametro.status,dtexpiracao,parametro.obspix,parametro.dtcriacaopix
-            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time]
+            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time,parametro.banco,parametro.tipopix]
             ,{autoCommit: true});
           if (result.affectedRows == 0) {
             
@@ -809,7 +858,8 @@ async function PedidosRca(parameter,req, res){
 
       console.log('CONCETADO NO BANCO!-- geraCredito618');
       //1--PEGAR O VALOR CONCILIADO PARA SOMAR E REALIZAR UPDATE NA PCESTCR
-      result_last_value = await connection.execute("SELECT PCESTCR.VALOR FROM PCESTCR WHERE CODCOB   = 'D' AND CODBANCO = 1");
+      console.log('BANCO: ' + parametro.codbanco)
+      result_last_value = await connection.execute("SELECT PCESTCR.VALOR FROM PCESTCR WHERE CODCOB   = 'D' AND CODBANCO = :1",[parametro.codbanco]);
       
       if (result_last_value.rows.length == 0) {
         console.log('NENHUM REGISTRO ENCONTRADO LAST VALUE PCESTCR - geraCredito618')
@@ -821,12 +871,14 @@ async function PedidosRca(parameter,req, res){
         console.log('TIPO DE DADO - VALOR DA TRANSACAO: ' + typeof (parametro.valor)) //retorna uma string
         let value_estcr_ftm=doubles[0].value_estcr.toFixed(2).replace('.', ',')
         let parametro_valor_fmt=parametro.valor.replace('.', ',');
-        console.log('VALOR FORMATADO ' + value_estcr_ftm)
-        console.log('VALOR FORMATADO ' + parametro_valor_fmt)
+        console.log('VALOR ATUAL PCESCR FORMATADO: ' + value_estcr_ftm)
+        console.log('VALOR PARA INCREMENTAR A PCESCR FORMATADO: ' + parametro_valor_fmt)
+        console.log('VALOR PARA INCREMETAR A PCESCT SEM FORMATO: ' + parametro.valor)
         
         //2--ATUALIZA O VALOR DA PCESTCR SOMANDO COM O VALOR DO CREDITO GERADO
         //update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = ('3846498.05') WHERE CODCOB = 'D' AND CODBANCO = 1",[doubles[0].value_estcr,parametro.valor ]);
-        update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = 1",[value_estcr_ftm,parametro_valor_fmt]);        
+        //update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = :3",[value_estcr_ftm,parametro_valor_fmt,parametro.codbanco]);
+        update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = :3",[doubles[0].value_estcr,parametro_valor_fmt,parametro.codbanco]);        
         let result_update_value_estcr=update_value_estcr;
         console.log(result_update_value_estcr);
 
@@ -858,7 +910,7 @@ async function PedidosRca(parameter,req, res){
               let valoratualizadopcestcr=(valor+valoratualizado);
               console.log('SALDO DA PCMOVCR COM O LANCAMENTO DO CREDITO: ' + valoratualizadopcestcr)
               let hist2=`LIQ.CRECLI[${parametro.codcli}] NF [0]`
-              console.log(hist2,parametro_valor_fmt,valoratualizadopcestcr,hora,minuto,parametro.matricula,parametro.codcli
+              console.log(hist2,parametro.valor,valoratualizadopcestcr,hora,minuto,parametro.matricula,parametro.codcli
                 ,parametro.codfilial)
               //console.log(proxnumtrans[0].proxnumtrans+parametro.valor+valoratualizadopcestcr+hora+minuto+' - '+parametro.matricula+parametro.codcli+parametro.codfilial)
               //5--REALIZA O INSERT NA PCMOVCR COM O NUMTRANS RECEBIDO ANTERIORMENTE DA PCCONSUM
@@ -884,14 +936,14 @@ async function PedidosRca(parameter,req, res){
                 ,CODFILIAL)                         
                 VALUES(
                   (SELECT NVL(PROXNUMTRANS,1)+1 AS PROXNUMTRANS FROM PCCONSUM P)
-                  ,sysdate,1,'D'
+                  ,sysdate,:1,'D'
                   ,'INCLUSAO MANUAL DE CREDITO CLIENTE'
-                  ,:1,:2,'D',0,null,:3,:4,:5,:6,'B','618',:7,:8)`,
-              [hist2,parametro_valor_fmt,valoratualizadopcestcr,hora,minuto,parametro.matricula,parametro.codcli
+                  ,:2,:3,'D',0,null,:4,:5,:6,:7,'B','618',:8,:9)`,
+              [parametro.codbanco,hist2,parametro_valor_fmt,valoratualizadopcestcr,hora,minuto,parametro.matricula,parametro.codcli
               ,parametro.codfilial]);
               // 18 CAMPOS NO INSERT
-              // 8 BINDS
-              // 10 SETADOS FIXOS NO INSERT
+              // 9 BINDS
+              // 9 SETADOS FIXOS NO INSERT
               let pcmovcr_sql=result_insert_pcmovcr;
               if(pcmovcr_sql.rowsAffected == 0){
                 console.log('NENHUM REGISTRO INSERIDO NA PCMOVCR -- geraCredito618')
@@ -959,6 +1011,7 @@ async function PedidosRca(parameter,req, res){
       }
     }
   }
+
   //BAIXA PIX NO WINTHOR - RETORNO PAGAMENTO
   async function UpdatePixBaixa(parametro,req, res) {
     //console.log(parametro)
@@ -1294,12 +1347,19 @@ async function getPixWinthor(parameter,req, res){
 
 function DisparoEmail(config,parametro,req,res){
   //console.log(config)
-  let renegociado=parametro.duplicatas.map(dup => `Duplicata: ${dup.duplicata} \r\nPrestacao: ${dup.prest}\r\nValor:${dup.valor}\r\nValor Total Juros/Multa:${dup.vltotaljurosmora}\r\n`).join()
+  let renegociado=null;
+
+  if(renegociado){
+    renegociado=parametro.duplicatas.map(dup => `Duplicata: ${dup.duplicata} \r\nPrestacao: ${dup.prest}\r\nValor:${dup.valor}\r\nValor Total Juros/Multa:${dup.vltotaljurosmora}\r\n`).join()
+  }else{
+    renegociado='NADA RENEGOCIADO'
+  }
+  
   console.log(parametro.duplicatas)
   var transporter = nodemailer.createTransport({
   host: config.host,
   port: config.port,
-  secure: config.secure,
+  //secure: config.secure,
   auth: {
     user: config.user,
     pass: config.pass
@@ -1319,7 +1379,8 @@ var mailOptions = {
   subject: config.subject,
   text: config.subject,
   html:
-  `<table align="center" border="0" cellpadding="0" cellspacing="0" id="bodyTable" style="-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; background-color:#e4e4e4; border-collapse:collapse; height:100%; margin:0; mso-table-lspace:0pt; mso-table-rspace:0pt; padding:0; width:100%">
+  `
+  <table align="center" border="1" cellpadding="1" cellspacing="1" style="width:500px">
 	<tbody>
 		<tr>
 			<td style="height:100%; width:100%">
@@ -1402,11 +1463,11 @@ var mailOptions = {
 													<tbody>
 														<tr>
 															<td>
-															<h1 style="text-align: center;">${parametro.codcli} - ${parametro.cliente}</h1>
+															<h1 style="text-align:center">${parametro.codcli} - ${parametro.cliente}</h1>
 
-															<p style="text-align: center;"><span style="color:#008000"><strong>SEU PAGAMENTO PIX FOI REALIZADO COM SUCESSO!</strong></span></p>
+															<p style="text-align:center"><span style="color:#008000"><strong>SEU PAGAMENTO PIX FOI REALIZADO COM SUCESSO!</strong></span></p>
 
-															<p style="text-align: center;"><strong>DADOS DO PEDIDO -&nbsp;</strong></p>
+															<p style="text-align:center"><strong>DADOS DO PEDIDO -&nbsp;</strong></p>
 
 															<p style="text-align:center"><strong>NUMERO DO PEDIDO:</strong> ${parametro.numped}</p>
 
@@ -1416,7 +1477,7 @@ var mailOptions = {
 
 															<p style="text-align:center"><strong>TOTAL PEDIDO:</strong> ${parametro.vlpedido}</p>
 
-                              <p style="text-align:center"><strong>VALOR PIX:</strong> ${parametro.vlpix}</p>
+															<p style="text-align:center"><strong>VALOR PIX:</strong> ${parametro.vlpix}</p>
 
 															<p style="text-align:center"><strong>PIX:</strong> ${parametro.txid}</p>
 
@@ -1424,7 +1485,7 @@ var mailOptions = {
 
 															<p style="text-align:center"><strong>FILIAL: </strong>${parametro.codfilial}</p>
 
-                              <p style="text-align:center"><strong>DUPLICATAS NEGOCIADAS: </strong>${renegociado}</p>
+															<p style="text-align:center"><strong>DUPLICATAS NEGOCIADAS: </strong>${renegociado}</p>
 
 															<p>&nbsp;</p>
 															</td>
@@ -1450,7 +1511,7 @@ var mailOptions = {
 													<tbody>
 														<tr>
 															<td>
-															<p style="text-align: center;"><strong>⚠️ Todas as informa&ccedil;&otilde;es s&oacute; poder&atilde;o ser acessadas e enviadas para o e-mail cadastrado na base da ROFE.</strong></p>
+															<p style="text-align:center"><strong>⚠️ Todas as informa&ccedil;&otilde;es s&oacute; poder&atilde;o ser acessadas e enviadas para o e-mail cadastrado na base da ROFE.</strong></p>
 															</td>
 														</tr>
 													</tbody>
@@ -1520,7 +1581,7 @@ var mailOptions = {
 		</tr>
 	</tbody>
 </table>
-   
+
   `
 };
 
@@ -1531,7 +1592,7 @@ transporter.sendMail(mailOptions, function(error, info){
     res.json({"status":500,"response":error,"text":"EMAIL NAO ENVIADO"})
   } else {
     console.log('NOTIFICANDO POR EMAIL.. ');
-    console.log('EMAIL ENVIADO SOM SUCESSO!' + info.response);
+    console.log('EMAIL ENVIADO SOM SUCESSO! - ' + config.bco + ' - ' + info.response);
     res.status(200)
     res.json({"status":200,"response":info.response,"text":"EMAIL ENVIADO COM SUCESSO!"})
 
@@ -1672,6 +1733,201 @@ let json2 = JSON.stringify(array[2]);
         });      
   }
 
+  //INSERT PIXTOKEN GERADOS
+  
+  async function InsertPixToken(parametro,req,res) {
+    //console.log(parametro)
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+    
+        console.log('CONECTADO NO BANCO - INSERT PIX TOKEN');
+        if(parametro.token!=null  && parametro.dthrexpiration!=null){
+          //console.log(parametro)
+          result = await connection.execute(`INSERT INTO PIXTOKEN(PIXTOKENID,BANCO,TOKEN,STATUS,DTHREXPIRATIONPIXTOKEN_APP,TOKEN_TYPE) 
+            VALUES ( (SELECT (MAX(P.PIXTOKENID)+1) FROM PIXTOKEN P),'237',:1,'A',:2,:3)`,
+            [parametro.token,parametro.dthrexpiration,parametro.token_type]
+            ,{autoCommit: true});
+          if (result.affectedRows == 0) {
+            
+            console.log('NENHUM PIXTOKEN INSERRIDO! - QTD: ' + result);
+          } else {
+            console.log(result)
+            //return res.send(result)
+          }
+        }else{
+          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
+          //return res.status(400).send(result)
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - INSERT PIX TOKEN');
+      //return  res.send(err) 
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - INSERT PIX TOKEN');
+        } catch (err) {
+          console.error(err.message + ' INSERT PIX TOKEN');
+        }
+      }
+    }
+  }
+
+  //ATUALIZA PIX TOKEN STATUS - ATIVO OU INATIVO
+  
+  async function UpdatePixTokenStatus(parametro,req,res) {
+    console.log('PARAMETRO: ' + parametro)
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+    
+        console.log('CONECTADO NO BANCO - UpdatePixTokenStatus');
+        if(parametro!=null){
+          //console.log(parametro)
+          result = await connection.execute(`UPDATE PIXTOKEN P SET P.STATUS='I' WHERE P.PIXTOKENID=:1`,
+            [parametro]
+            ,{autoCommit: true});
+          if (result.affectedRows == 0) {
+            
+            console.log('NENHUM PIXTOKEN ATUALIZADO! - QTD: ' + result);
+          } else {
+            console.log(result)
+            //return res.send(result)
+          }
+        }else{
+          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
+          //return res.status(400).send(result)
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - UpdatePixTokenStatus');
+      //return  res.send(err) 
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - UpdatePixTokenStatus');
+        } catch (err) {
+          console.error(err.message + ' UpdatePixTokenStatus');
+        }
+      }
+    }
+  }
+
+  //GET PIX TOKEN WINTHOR -- VALIDA TOKEN
+async function getPixToken(req, res){
+  try {
+    connection = await oracledb.getConnection({
+      user: process.env.USERNAME,
+      password: process.env.PASSWORD,
+      connectString: process.env.CONNECTSTRING
+    });
+    console.log('CONCETADO NO BANCO! -- GET PIX TOKEN');
+    // run query to get all employees
+    result = await connection.execute("SELECT P.PIXTOKENID,P.DTHREXPIRATIONPIXTOKEN,SYSDATE,((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440) AS TEMPO_RESTANTE_TOKEN,CASE WHEN ((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440)>0 THEN 'TOKEN VALIDO' ELSE 'TOKEN INVALIDO' END AS VALIDA_TOKEN,P.TOKEN,P.token_type FROM PIXTOKEN P WHERE P.PIXTOKENID=(SELECT MAX(PT.PIXTOKENID) FROM PIXTOKEN PT ) ORDER BY PIXTOKENID",[]);
+    if (result.rows.length == 0) {
+      //query return zero employees
+      return res.send('NENHUM REGISTRO ENCONTRADO -- GET PIX TOKEN');
+    } else {
+      //send all employees
+      const doubles = result.rows.map(function(newsql) {
+          return {
+              PIXTOKENID:newsql[0],
+              TOKEN:newsql[5],
+              TOKEN_TYPE:newsql[6],
+              VALIDA_TOKEN:newsql[4],
+              EXPIRES_IN:newsql[1],
+              TEMPO_RESTANTE:newsql[3],
+
+          }
+      })
+      //console.log(doubles[0].VALIDA_TOKEN)
+      //return res.send(doubles);
+      const token={"pixtokenid":doubles[0].PIXTOKENID,"access_token":doubles[0].TOKEN,"token_type":doubles[0].TOKEN_TYPE,"status":doubles[0].VALIDA_TOKEN,"dthrexpiration":doubles[0].EXPIRES_IN,"tempo_restante":doubles[0].TEMPO_RESTANTE}
+      return token
+    }
+  } catch (err) {
+    //send error message
+    //return res.send(err);
+  } finally {
+    if (connection) {
+      try {
+        // Always close connections
+        await connection.close();
+        console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PIX TOKEN');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+}
+
+  //INSERT PIX NOTIFICATIONS
+  
+  async function InsertPixNotification(req,res,pix) {
+    //console.log(parametro)
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+    
+        console.log('CONECTADO NO BANCO - INSERT PIX NOTIFICATION');
+        if(pix.endToEndId!=null  && pix.txid!=null){
+          //console.log(parametro)
+          result = await connection.execute(`INSERT INTO PIXNOTIFICATIONS 
+          (PIXNOTIFICATIONSID,BANCO,STATUS,ENDTOENDID,TXID,VALORPAGO,DTHRPAG,OBSPAGADOR) 
+          VALUES 
+          ((SELECT (MAX(PN.PIXNOTIFICATIONSID)+1) FROM PIXNOTIFICATIONS PN),:1,:2,:3,:4,:5,:6,:7)`,
+            ['237','C',pix.endToEndId,pix.txid,pix.valor,pix.horario,pix.infoPagador]
+            ,{autoCommit: true});
+          if (result.affectedRows == 0) {
+            
+            console.log('NENHUMA PIX NOTIFICATION INSERRIDO! - QTD: ' + result);
+          } else {
+            console.log(result)
+            //return result;
+            return res.send(result)
+          }
+        }else{
+          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS - PIX NOTIFICATION')
+          //return 'DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS - PIX NOTIFICATION'
+          return res.status(400).send(result) 
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - INSERT PIX NOTIFICATION');
+      return  res.send(err) 
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - INSERT PIX NOTIFICATION');
+        } catch (err) {
+          console.error(err.message + ' INSERT PIX NOTIFICATION');
+        }
+      }
+    }
+  }
+
   module.exports={
     getFunc:getFunc,
     getNumpedFilial:getNumpedFilial,
@@ -1698,4 +1954,9 @@ let json2 = JSON.stringify(array[2]);
     DisparoEmail:DisparoEmail,
     LiberaPedido:LiberaPedido,
     Milvus:Milvus,
+    InsertPixToken:InsertPixToken,
+    getPixToken:getPixToken,
+    UpdatePixTokenStatus:UpdatePixTokenStatus,
+    InsertPixNotification:InsertPixNotification,
+    getUserAuth:getUserAuth
   }

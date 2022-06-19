@@ -54,6 +54,12 @@ SmarketingRouter.get('/cupom', function (req,res) {
 
 })
 
+SmarketingRouter.get('/metas', function (req,res) {
+
+    functions.getMetas(req, res); 
+
+})
+
 
         
 module.exports=SmarketingRouter

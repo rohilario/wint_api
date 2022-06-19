@@ -18,6 +18,8 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
     const dtcriacaopix=req.body.data.dtcriacaopix
     const codfuncpix=req.body.data.codfuncpix
     const expiration_time=req.body.data.expiration_time
+    const banco = req.body.data.banco
+    const tipopix = req.body.data.tipopix
 
     obj={
         "codfilial":codfilial,
@@ -33,6 +35,8 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
         "dtcriacaopix":dtcriacaopix,
         "codfuncpix":codfuncpix,
         "expiration_time":expiration_time,
+        "banco":banco,
+        "tipopix":tipopix,
     }
     //console.log(obj)
     if(obj){

@@ -1,28 +1,21 @@
 const express = require('express')
 const AuthRouter = express.Router();  
-const auth=require('../services/auth')
+const functions=require('../services/auth')
+
 
 AuthRouter.post('/token/create', function (req,res) {
+  const usr=req.body.usr;
+  const pass=req.body.pass
+  const auth={usr:usr,pass:pass}
 
-    obj={
+  //console.log(auth)
 
-    }
-    //console.log(obj)
-    if(obj){
-      //res.status(200)
-      //res.json(req.body.cpfcnpj)
-      //auth.CreateJWT(obj,req, res); 
-      //console.log(req.body.data.cpfcnpj)  
-        }else{res.json({"ERROR":codprod});res.status(404)}
-    
+  functions.validUser(req,res,auth)
+
 })
 
-AuthRouter.post('/token/autenticate', function (req,res) {
-
-    obj={
-
-    }
-    //console.log(obj)
+AuthRouter.get('/token/autenticate', functions.verifyJWT,function (req,res) {
+  
     if(obj){
       //res.status(200)
       //res.json(req.body.cpfcnpj)

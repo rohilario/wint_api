@@ -53,7 +53,7 @@ app.use(function (req, res, next) {
 //definindo as rotas
 const router = express.Router();
 app.use('/', router);
-app.use('/auth',AuthRouter)
+app.use('/auth',AuthRouter);
 app.use('/actions',ActionRouter)
 app.use('/logistica', LogistcRoutes);
 app.use('/cadastro', ResgistrationRoutes);

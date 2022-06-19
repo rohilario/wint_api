@@ -74,7 +74,7 @@ async function getSegmentos(req, res){
       if (connection) {
         try {
           // Always close connections
-          await connection.close();
+          //await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET SEGMENTOS - SMARKETING INTEGRATION');
         } catch (err) {
           console.error(err);
@@ -254,7 +254,7 @@ async function getLojas(req, res){
       if (connection) {
         try {
           // Always close connections
-          await connection.close();
+          //await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CATEGORIAS - SMARKETING INTEGRATION');
         } catch (err) {
           console.error(err);
@@ -364,13 +364,13 @@ async function getLojas(req, res){
   async function getProdutos(req, res){
     try {
       const connection = await oracledb.getConnection('appspool');
-      console.log('CONCETADO NO BANCO! -- GET FORNECEDOR - SMARKETING INTEGRATION');
+      console.log('CONCETADO NO BANCO! -- GET PRODUTO DESCRICAO - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(
         `
         SELECT P.CODPROD AS SEQPRODUTO, P.CODEPTO AS SEQCATEGORIA,'' AS SEQFAMILIA
         ,'' AS SEQSIMILARIDADE, P.CODFORNEC AS SEQFORNECEDOR
-        ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(P.DESCRICAO,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS DESCRICAO
+        ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(P.NOMEECOMMERCE,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS DESCRICAO
         ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(P.EMBALAGEM,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS TIPO_EMBALAGEM
         ,P.QTUNIT AS QUANTIDADE_EMBALAGEM,'' AS QUANTIDADE_PROPORCIONAL,'' AS UNIDADE_EMBALAGEM
         ,'' AS UNIDADE_PROPORCIONAL
@@ -423,7 +423,7 @@ async function getLojas(req, res){
                         };
                         ftp.connect(config);	
                         console.log('JOGANDO ARQUIVO PARA DIRETORIO REMOTO...')
-                        /* ftp.upload("/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt, function(err){
+                        ftp.upload("/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt, function(err){
                             if(err){
                                 ftp.close();
                                 return res.status(400).send(err)
@@ -431,7 +431,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); */
+                        }); 
                     }
                   });
             }
@@ -928,7 +928,7 @@ async function getLojas(req, res){
                         };
                         ftp.connect(config);	
                         console.log('JOGANDO ARQUIVO PARA DIRETORIO REMOTO...')
-                        /* ftp.upload("/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt, function(err){
+                         ftp.upload("/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt, function(err){
                             if(err){
                                 ftp.close();
                                 return res.status(400).send(err)
@@ -936,7 +936,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); */
+                        }); 
                     }
                   });
             }
