@@ -23,6 +23,8 @@ const ActionRouter = require('./src/routes/ActionsRoutes')
 const MilvusRouter = require('./src/routes/MilvusRoutes')
 const SmarketingRouter = require('./src/routes/SmarketingRoutes')
 const PixBradescoRoutes = require('./src/routes/PixBradescoRoutes')
+const PrecificacaoRoutes = require('./src/routes/PrecificacaoRoutes')
+const ClienteRoutes = require('./src/routes/ClienteRoutes')
 
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -65,6 +67,8 @@ app.use('/images', ImagesRouter);
 app.use('/milvus', MilvusRouter);
 app.use('/smarketing',SmarketingRouter);
 app.use('/pix/bradesco',PixBradescoRoutes);
+app.use('/precificacao',PrecificacaoRoutes);
+app.use('/clientes',ClienteRoutes);
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 

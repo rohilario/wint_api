@@ -8,9 +8,20 @@ AuthRouter.post('/token/create', function (req,res) {
   const pass=req.body.pass
   const auth={usr:usr,pass:pass}
 
-  //console.log(auth)
+  console.log(req.body)
 
   functions.validUser(req,res,auth)
+
+})
+
+AuthRouter.post('/rca/token/create', function (req,res) {
+  const usr=req.body.data.usr || req.body.usr;
+  const pass=req.body.data.pass || req.body.pass
+  const auth={usr:usr,pass:pass}
+
+  //console.log(req.body)
+
+  functions.validUserRCA(req,res,auth)
 
 })
 

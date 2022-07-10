@@ -16,7 +16,7 @@ const axios = require('axios');
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET USER AUTH');
-      result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1) FROM PCEMPR R WHERE 
+      result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1),R.MATRICULA FROM PCEMPR R WHERE 
       R.USUARIOBD=:1 --AND LTRIM(RTRIM(UPPER(R.USUARIOBD))) = :1
       AND R.DT_EXCLUSAO IS NULL AND R.SITUACAO='A' AND R.CODSETOR=8 AND R.USUARIOBD=:1`,[auth.usr]);
   
@@ -30,11 +30,65 @@ const axios = require('axios');
                     nome:newsql[0],
                     nomeguerra:newsql[1],
                     pass:newsql[2],
+                    matricula:newsql[3],
             }
         })
         //console.log(user[0])
         console.log('AUTENTICADO COM SUCESSO! -- GET USER AUTH')
         return user;
+      }
+    
+    } catch (err) {
+      //send error message
+      return res.send(err.message);
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          //await connection.close();
+          //console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE NOME');
+        } catch (err) {
+          console.error(err.message);
+        }
+      }
+    }
+  }
+
+  //GET RCA WINTHOR POR NOME
+  async function getRCAAuth(req, res, auth){
+    //console.log(auth)
+    let connection;
+    
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+      console.log('CONCETADO NO BANCO! -- GET RCA AUTH');
+      result = await connection.execute(`SELECT U.CODUSUR,U.NOME,U.EMAIL FROM PCUSUARI U WHERE U.DTEXCLUSAO IS NULL AND U.BLOQUEIO='N' AND U.CODUSUR=:1`,[auth.pass]);
+  
+      if (result.rows.length == 0) {
+        //query return zero employees
+        return [{nome:null,pass:null,msg:'NAO FOI LOCALIZADO NENHUM REGISTRO PARA OS PARAMETROS INFORMADOS'}]//res.json('NENHUM REGISTRO ENCONTRADO -- GET CLIENTE NOME');
+      } else {
+        //send all employees
+        const user = result.rows.map(function(newsql) {
+            return {
+                    codrca:newsql[0],
+                    email:newsql[2],
+                    nome:newsql[1],
+                    pass:newsql[0],
+            }
+        })
+        if(auth.usr===user[0].email){
+          console.log('AUTENTICADO COM SUCESSO! -- GET RCA AUTH')
+          return user;
+        }else{
+          console.log('USUARIO OU SENHAS INVALIDAS -- GET RCA AUTH')
+          return user;
+        }
+
       }
     
     } catch (err) {
@@ -733,20 +787,21 @@ async function PedidosRca(parameter,req, res){
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
-    session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
-    alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
-    after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    //session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    //alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
+    //after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
     result = await connection.execute(
     `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
     FROM PCPEDC P, PCCLIENT C
     WHERE C.CODCLI=P.CODCLI
-    AND P.POSICAO IN ('B','L','P','M') AND P.ORIGEMPED IN ('F','T','W')
+    AND P.POSICAO IN ('B','L','P','M') AND P.ORIGEMPED IN ('F','T','W','R')
     --AND P.DATA=:1
     --AND C.MOTIVOBLOQ NOT LIKE '%Cliente bloqueado, pois existia pelo menos um título em atraso%' 
     AND P.CODFILIAL=:1
-    GROUP BY P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT`,[parameter.codfilial]);
+    AND P.CODUSUR=:2
+    GROUP BY P.CODFILIAL,P.NUMPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,P.VLATEND,C.CGCENT`,[parameter.codfilial,parameter.codusur]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET PEDIDO FRENTE DE LOJA');
@@ -841,6 +896,184 @@ async function PedidosRca(parameter,req, res){
       }
     }
   }
+
+  //INSERT PIX GERADOS - FRENTE DE LOJA
+  async function InsertPix(parametro,req, res) {
+    //console.log(parametro)
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+    
+        console.log('CONECTADO NO BANCO - InsertPix');
+        if(parametro.txid!=null  && parametro.codfilial!=null){
+          console.log(parametro)
+          result = await connection.execute(`INSERT INTO PIX(
+            pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
+            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
+            VALUES (
+            (SELECT (MAX(P.PIXID)+1) FROM PIX P),:1,:2,:3,:4,
+            :5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)`,
+            [parametro.txid,parametro.numped,parametro.vlpix,parametro.cpfcnpj,parametro.txtimgqrcode
+            ,parametro.numrevisao,parametro.status,dtexpiracao,parametro.obspix,parametro.dtcriacaopix
+            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time,parametro.banco,parametro.tipopix]
+            ,{autoCommit: true});
+          if (result.affectedRows == 0) {
+            
+            console.log('NENHUM PIX INSERRIDO! - QTD: ' + result);
+          } else {
+            console.log(result)
+            return res.send(result)
+          }
+        }else{
+          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
+          return res.status(400).send(result)
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - InsertPix');
+      return  res.send(err) 
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - InsertPix');
+        } catch (err) {
+          console.error(err.message + ' InsertPix');
+        }
+      }
+    }
+  }
+
+
+  //GET DUPLICATAS EM ABERTO RCA - GERACAO DE PIX
+  async function GetDuplicRCA(parameter,req, res){
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+      console.log('CONCETADO NO BANCO! -- GET DUPLIC RCA');
+      // run query to get all employees
+      result = await connection.execute(
+      `SELECT P.CODFILIAL,P.DUPLIC,P.PREST,P.NUMPED,P.VALOR,P.CODCLI,C.CLIENTE,P.DTVENC
+      ,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
+      ,CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END AS VALOR_MULTA
+      ,CASE WHEN P.DTVENC<SYSDATE THEN ROUND((SYSDATE-P.DTVENC)-1) ELSE 0 END AS QTDIAS_JUROS
+      ,CASE WHEN P.DTVENC<SYSDATE THEN (CASE WHEN DU.DIAFINANCEIRO='N' THEN (SELECT COUNT(*) FROM PCDIASUTEIS D WHERE D.CODFILIAL=P.CODFILIAL AND D.DIAFINANCEIRO='S' AND D.DATA BETWEEN P.DTVENC AND SYSDATE) ELSE (SELECT COUNT(*) FROM PCDIASUTEIS D WHERE D.CODFILIAL=P.CODFILIAL AND D.DIAFINANCEIRO='S' AND D.DATA BETWEEN P.DTVENC AND SYSDATE) END) ELSE 0 END AS QTDIAS_JUROS_DIAS_UTEIS
+      ,CASE WHEN P.DTVENC<SYSDATE THEN (((5*P.VALOR)/100)/30) ELSE 0 END AS VLMORA
+      ,(P.VALOR + (CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END) + ((CASE WHEN P.DTVENC<SYSDATE THEN ROUND((SYSDATE-P.DTVENC)-1) ELSE 0 END) * CASE WHEN P.DTVENC<SYSDATE THEN (((5*P.VALOR)/100)/30) ELSE 0 END ) ) AS VLJUROSMULTADIASCORRIDOS
+      ,C.EMAILNFE AS EMAIL
+      FROM PCPREST P,PCCLIENT C, PCDIASUTEIS DU 
+      WHERE DU.DATA=P.DTVENC AND DU.CODFILIAL=P.CODFILIAL --AND DU.DIAFINANCEIRO='S'
+      AND P.CODCLI=C.CODCLI AND P.DTPAG IS NULL 
+      AND P.CODCLI=:1
+      ORDER BY P.DUPLIC DESC`,[parameter.codcli]);
+      if (result.rows.length == 0) {
+        //query return zero employees
+        return res.send('NENHUM REGISTRO ENCONTRADO -- GET DUPLIC RCA');
+      } else {
+        console.log("DUPLICATAS ENCONTRADAS: " + result.rows.length)
+        //send all employees
+        const doubles = result.rows.map(function(newsql) {
+            return {
+                    CODFILIAL:newsql[0],
+                    DUPLIC:newsql[1],
+                    PREST:newsql[2],
+                    NUMPED:newsql[3],
+                    VALOR:newsql[4],
+                    CODCLI:newsql[5],
+                    CLIENTE:newsql[6],
+                    DTVENC:newsql[7],
+                    CPFCNPJ:newsql[8],
+                    VALORMULTA:newsql[9],
+                    QTDIAS:newsql[10],
+                    QTDIASUTEIS:newsql[11],
+                    VLMORA:newsql[12],
+                    VLTOTALJUROSMULTA:newsql[13],
+                    EMAIL:newsql[14],
+            }
+        })
+        //console.log(session)
+        //console.log(alter_session)
+        //console.log(after_session)
+        return res.send(doubles);
+      }
+    } catch (err) {
+      //send error message
+      return res.send(err.message);
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC RCA');
+        } catch (err) {
+          console.error(err.message);
+        }
+      }
+    }
+  }
+
+  //INSERT PIX GERADOS - FRENTE DE LOJA
+  async function InsertPix(parametro,req, res) {
+    //console.log(parametro)
+    let dtexpiracao = new Date().toLocaleString('pt-BR')
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+    
+        console.log('CONECTADO NO BANCO - InsertPix');
+        if(parametro.txid!=null  && parametro.codfilial!=null){
+          console.log(parametro)
+          result = await connection.execute(`INSERT INTO PIX(
+            pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
+            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
+            VALUES (
+            (SELECT (MAX(P.PIXID)+1) FROM PIX P),:1,:2,:3,:4,
+            :5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)`,
+            [parametro.txid,parametro.numped,parametro.vlpix,parametro.cpfcnpj,parametro.txtimgqrcode
+            ,parametro.numrevisao,parametro.status,dtexpiracao,parametro.obspix,parametro.dtcriacaopix
+            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time,parametro.banco,parametro.tipopix]
+            ,{autoCommit: true});
+          if (result.affectedRows == 0) {
+            
+            console.log('NENHUM PIX INSERRIDO! - QTD: ' + result);
+          } else {
+            console.log(result)
+            return res.send(result)
+          }
+        }else{
+          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
+          return res.status(400).send(result)
+        }
+                   
+    } catch (err) {
+      //send error message
+      console.error(err.message + ' - InsertPix');
+      return  res.send(err) 
+    } finally {
+      if (connection) {
+        try {
+          // Always close connections
+          await connection.close();
+          console.log('CONEXAO FECHADA COM SUCESSO! - InsertPix');
+        } catch (err) {
+          console.error(err.message + ' InsertPix');
+        }
+      }
+    }
+  }
+
 
   //GERA CREDITO PARA PEDIDOS FATURADOS POR PIX - 618
   async function geraCredito618(parametro,req, res) {
@@ -948,7 +1181,7 @@ async function PedidosRca(parameter,req, res){
               if(pcmovcr_sql.rowsAffected == 0){
                 console.log('NENHUM REGISTRO INSERIDO NA PCMOVCR -- geraCredito618')
               }else{
-                console.log('REGISTRO DE CONCILIACAO BANCARIA INSERIDO COM SUCESSO NA PCMOVCR - PIX BB')
+                console.log('REGISTRO DE CONCILIACAO BANCARIA INSERIDO COM SUCESSO NA PCMOVCR - PIX')
                 console.log(pcmovcr_sql)
                 let historico='CRED. AUTO. BAIXA PIX - FRENTE DE LOJA'
 
@@ -1622,7 +1855,7 @@ transporter.sendMail(mailOptions, function(error, info){
         if(result_posicao_pedido.rows.length>0){
           if(doubles[0].posicao=='B' || doubles[0].posicao=='P'){
             console.log(parametro)
-            result_update_pedido = await connection.execute(`UPDATE PCPEDC P SET P.POSICAO='L',P.DTLIBERA=SYSDATE,P.CODFUNCLIBERA=5555 WHERE P.NUMPED=:1`,
+            result_update_pedido = await connection.execute(`UPDATE PCPEDC P SET P.POSICAO='L',P.DTLIBERA=SYSDATE,P.CODFUNCLIBERA=5555, P.OBS='PAGAMENTO VIA PIX' WHERE P.NUMPED=:1`,
             [parametro.numped]
             ,{autoCommit: true});
 
@@ -1958,5 +2191,7 @@ async function getPixToken(req, res){
     getPixToken:getPixToken,
     UpdatePixTokenStatus:UpdatePixTokenStatus,
     InsertPixNotification:InsertPixNotification,
-    getUserAuth:getUserAuth
+    getUserAuth:getUserAuth,
+    getRCAAuth:getRCAAuth,
+    GetDuplicRCA:GetDuplicRCA
   }

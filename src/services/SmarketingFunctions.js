@@ -5,11 +5,51 @@ const nodemailer = require('nodemailer');
 const axios = require('axios');
 const json2csv =   require('json2csv');
 var EasyFtp = require('easy-ftp');
+//var PromiseFtp = require('promise-ftp');
+const ftp = require("basic-ftp");
+const conn = require('../config/connection');
+//const connection = require('../config/connection');
+
+async function ConnectFtp(req,res,origem,destino,msg) {
+  const client = new ftp.Client()
+  client.ftp.verbose = true
+  try {
+     conn_ftp= await client.access({
+          host: "ftp.smarketsolutions.com.br",
+          user: "rofedistribuidora",
+          password: "NTdlNDEyNGM4OGFl",
+          port:21,
+          //secure: true
+      })
+      console.log('CONECTADO!')
+      //console.log(conn_ftp)
+      //console.log(await client.list())
+      await client.uploadFrom(origem, destino)
+      return res.status(200).send({"MSG":msg})
+  }
+  catch(err) {
+      console.log('ERROR')
+      console.log(err)
+      return res.status(400).send(err)
+  }finally {
+    if (conn_ftp) {
+      try {
+        // Always close connections
+        client.close()
+        console.log('CONEXAO COM O FTP SMARKETING FECHADA COM SUCESSO');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+  //client.close()
+}
 
 //GET SEGMENTOS FROM DUAL
 async function getSegmentos(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
+      //console.log(connection)
       console.log('CONCETADO NO BANCO! -- GET SEGMENTOS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT '1' AS SEQSEGMENTO, 'DISTRIBUIDORA DE MATERIAL DE CONSTRUCAO' AS SEGMENTO FROM DUAL`);
@@ -36,7 +76,10 @@ async function getSegmentos(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      console.log('enviando arquivo..')
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET SEGMENTOS'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -44,7 +87,7 @@ async function getSegmentos(req, res){
                           password: 'NTdlNDEyNGM4OGFl',
                           type : 'ftp'
                         };
-                        ftp.connect(config);	
+                        let teste = ftp.connect(config);	
                         console.log('JOGANDO ARQUIVO PARA DIRETORIO REMOTO...');
                         ftp.upload("/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt, function(err){
                             if(err){
@@ -55,7 +98,7 @@ async function getSegmentos(req, res){
                             }
                         }); 
                         //return res.status(200).send({"msg":"arquivo enviado com sucesso!"})
-                        //ftp.close();
+                        //ftp.close();*/
                     }
                   });
             }
@@ -74,8 +117,8 @@ async function getSegmentos(req, res){
       if (connection) {
         try {
           // Always close connections
-          //await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET SEGMENTOS - SMARKETING INTEGRATION');
+          await connection.close();
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET SEGMENTOS - SMARKETING INTEGRATION');
         } catch (err) {
           console.error(err);
         }
@@ -87,7 +130,7 @@ async function getSegmentos(req, res){
 //GET LOJAS - REGIOES WINTHOR
 async function getLojas(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET LOJAS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT R.NUMREGIAO AS SEQLOJA,1 AS SEQSEGMENTO,
@@ -136,7 +179,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET LOJAS'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -155,7 +200,7 @@ async function getLojas(req, res){
                             }
                         }); 
                         //return res.status(200).send({"msg":"arquivo enviado com sucesso!"})
-                        //ftp.close();
+                        //ftp.close();*/
                     }
                   });
             }
@@ -175,7 +220,7 @@ async function getLojas(req, res){
         try {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET LOJAS - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET LOJAS - SMARKETING INTEGRATION');
         } catch (err) {
           console.error(err);
         }
@@ -185,7 +230,7 @@ async function getLojas(req, res){
 
   async function getCategoria(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET CATEGORIAS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT D.CODEPTO AS SEQCATEGORIA,'' AS SEQCATEGORIA_PAI, D.DESCRICAO AS CATEGORIA FROM PCDEPTO D --WHERE D.CODEPTO=10011`);
@@ -216,7 +261,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET CATEGORIAS'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -234,7 +281,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        });
+                        });*/
                     }
                   });
             }
@@ -248,14 +295,17 @@ async function getLojas(req, res){
       }
     } catch (err) {
       //send error message
+      console.log('error connection')
       console.log(err)
-      return res.send(err);
+      //return res.send(err);
     } finally {
       if (connection) {
         try {
           // Always close connections
-          //await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CATEGORIAS - SMARKETING INTEGRATION');
+          await connection.close();
+          //await conn.initOracleDbConection();
+          //await this.getCategoria();
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET CATEGORIAS - SMARKETING INTEGRATION');
         } catch (err) {
           console.error(err);
         }
@@ -264,7 +314,7 @@ async function getLojas(req, res){
   }
   async function getFornecedor(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET FORNECEDOR - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT F.CODFORNEC AS SEQFORNECEDOR
@@ -318,7 +368,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET FORNECEDOR'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -336,7 +388,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO PARA O FTP')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -350,20 +402,21 @@ async function getLojas(req, res){
       }
     } catch (err) {
       //send error message
+      console.log('error connection')
       console.log(err)
       return res.send(err);
     } finally {
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET FORNECEDOR - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET FORNECEDOR - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getProdutos(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTO DESCRICAO - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(
@@ -413,7 +466,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET PRODUTO DESCRICAO'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -431,7 +486,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -445,20 +500,24 @@ async function getLojas(req, res){
       }
     } catch (err) {
       //send error message
+      console.log('error connection')
       console.log(err)
+      //await connection.close();
       return res.send(err);
     } finally {
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PRODUTOS DESCRICAO - SMARKETING INTEGRATION');
+          //await conn.closePool();
+          //await conn.initOracleDbConection();
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET PRODUTOS DESCRICAO - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getProdutoPreco(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS PRECOS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA,ROUND(T.PVENDA2,2) AS PRECO_NORMAL
@@ -505,7 +564,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET PRODUTO PRECO'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -523,7 +584,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -543,14 +604,14 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PRODUTOS PRECOS - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET PRODUTOS PRECOS - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getProdutoEstoque(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS ESTOQUE - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA
@@ -589,7 +650,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET PRODUTO ESTOQUE'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -607,7 +670,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -627,14 +690,14 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PRODUTOS ESTOQUE - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET PRODUTOS ESTOQUE - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getProdutoAtivo(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS ATIVOS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT --R.NUMREGIAO,COUNT(*)
@@ -672,7 +735,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET PRODUTO ATIVO'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -690,7 +755,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -710,14 +775,14 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PRODUTOS ATIVOS - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET PRODUTOS ATIVOS - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getProdutoEAN(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS EAN - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(`SELECT P.CODPROD AS SEQPRODUTO,CASE WHEN P.CODAUXILIAR IS NULL THEN 0 ELSE P.CODAUXILIAR END AS EAN,'1' AS PRINCIPAL FROM PCPRODUT P WHERE P.DTEXCLUSAO IS NULL --AND P.OBS='N'`);
@@ -748,7 +813,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET PRODUTO EAN'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -766,7 +833,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -786,14 +853,14 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PRODUTOS EAN - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET PRODUTOS EAN - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getCupom(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET CUPOM - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(
@@ -837,7 +904,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET CUPOM'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -855,7 +924,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP!')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -875,14 +944,14 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CUPOM - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET CUPOM - SMARKETING INTEGRATION');
       }
     }
   }
 
   async function getMetas(req, res){
     try {
-      const connection = await oracledb.getConnection('appspool');
+      const connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET METAS - SMARKETING INTEGRATION');
       // run query to get all employees
       result = await connection.execute(
@@ -918,7 +987,9 @@ async function getLojas(req, res){
                     } else {
                       console.log('ARQUIVO ' + filenamefmt + ' SALVO COM SUCESSO!');
                       //CONECTAR VIA FTP PARA SALVAR O ARQUIVO
-                      let ftp = new EasyFtp();
+                      let msg='ARQUIVO ENVIADO COM SUCESSO GET METAS'
+                      ConnectFtp(req,res,"/var/www/html/wint_api/src/upload/"+filenamefmt, "/"+filenamefmt,msg)
+                      /*let ftp = new EasyFtp();
                       let config = {
                           host: 'ftp.smarketsolutions.com.br',
                           port: 21,
@@ -936,7 +1007,7 @@ async function getLojas(req, res){
                                 console.log('ARQUIVO ENVIADO COM SUCESSO AO FTP')
                                 res.status(200).send({"MSG":"ARQUIVO ENVIADO COM SUCESSO"})
                             }
-                        }); 
+                        }); */
                     }
                   });
             }
@@ -956,7 +1027,7 @@ async function getLojas(req, res){
       if (connection) {
           // Always close connections
           await connection.close();
-          console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET METAS - SMARKETING INTEGRATION');
+          console.log('CONEXAO COM O BANCO NAO FOI FECHADA POIS PARTE DO SPOOL -- GET METAS - SMARKETING INTEGRATION');
       }
     }
   }

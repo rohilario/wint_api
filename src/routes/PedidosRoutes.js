@@ -71,12 +71,13 @@ PedidosRouter.get('/balcaoreserva/codfilial/:codfilial', function (req,res) {
   
   })
 
-  //PEDIDOS FRENTE DE LOJA VENDEDOR BALCAO
-PedidosRouter.get('/balcaoreserva/rca/codfilial/:codfilial', function (req,res) {
+  //PEDIDOS POR RCA
+PedidosRouter.get('/entrega/rca/codfilial/:codfilial/codrca/:codrca', function (req,res) {
   //const date=req.params.numped
   const codfilial=req.params.codfilial
+  const codusur=req.params.codrca
   //const date=req.body.date
-  obj={"codfilial":codfilial}
+  obj={"codfilial":codfilial,"codusur":codusur}
   if(codfilial){
     //res.json(obj)
     res.status(200)
@@ -105,7 +106,7 @@ PedidosRouter.get('/entrega/rca/codfilial/:codfilial', function (req,res) {
   
   })
 
-     //PEDIDOS FRENTE DE LOJA VENDEDOR BALCAO
+  // LIBERA PEDIDOS
 PedidosRouter.post('/liberacao/codfilial/:codfilial/:numped', function (req,res) {
   const codfilial=req.params.codfilial
   const numped=req.params.numped

@@ -38,6 +38,32 @@ const oracledb = require('oracledb');
     }
   }
 
+  async function GetConnection(){
+    let connection;
+    try {
+      connection = await oracledb.getConnection({
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        connectString: process.env.CONNECTSTRING
+      });
+
+      return connection;
+
+  }catch{
+      //send error message
+      return res.send(err.message);
+  }finally {
+      if (connection) {
+        try {
+          // Always close connections
+          //await connection.close();
+        } catch (err) {
+          console.error(err.message);
+        }
+      }
+    }
+}
+
   async function checkConnection() {
     console.log("CHECANDO CONEXAO COM O ORACLE A PARTIR DO SPOOL... 'appspool' ")
     try {
@@ -50,17 +76,31 @@ const oracledb = require('oracledb');
         console.log("CONEXAO COM O ORACLE ESTABELECIDA COM SUCESSO!")
         try {
           // Always close connections
-          //await connection.close(); 
+          await connection.close(); 
           console.log('CONEXAO TESTADA COM SUCESSO! MANTENDO ATIVA.. -- CHECK CONECTION');
           console.log("-------------------------------------------------------------------------------------------------------------------------------------");
           console.log("----------------------------------------------------#AGUARDANDO REQUESTS...#---------------------------------------------------------");
           console.log("-----------------------------------------------# WINTHOR API ROFE DISTRIBUIDORA #----------------------------------------------------");
           console.log("-------------------------------------------------------------------------------------------------------------------------------------");
+          //await closePool();  
         } catch (err) {
+          console.log('ERRO DE CONEXAO')
           console.error(err.message);
         }
       }
     }
   }
 
-  module.exports={checkConnection:checkConnection,initOracleDbConection:initOracleDbConection}
+  async function closePool() {
+    try {
+      console.log('Destroy pool: appspool');
+      //connetion.close();
+      const pool = await oracledb.getPool('appspool');
+      await pool.close();
+      console.log('CONEXAO POOL DESTRUIDA COM SUCESSO')
+    } catch (err) {
+      console.log('Error destroying pool:', err);
+    }
+  }
+
+  module.exports={checkConnection:checkConnection,initOracleDbConection:initOracleDbConection,closePool:closePool,GetConnection:GetConnection}
