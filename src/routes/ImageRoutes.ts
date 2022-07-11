@@ -1,6 +1,6 @@
-const express = require('express')
-const ImagesRouter = express.Router();  
-const functions=require('../services/functions')
+const expressImages = require('express')
+const ImagesRouter = expressImages.Router();  
+const functionsImages=require('../services/functions')
 const fs = require('fs');
 const path = require('path');
 
@@ -8,7 +8,7 @@ ImagesRouter.get('/produto/:productfolder/:codprod', async function (req, res, n
     const dirpath="/mnt/winthor_img";
 	const product = req.params.codprod;
     const productfolder = req.params.productfolder;
-    obj={"product":product+'.jpg',"dirpath":dirpath}
+    const obj={"product":product+'.jpg',"dirpath":dirpath}
     
     if (fs.existsSync(dirpath)){
         console.log("DIRETORIO DE IMAGENS EXISTENTE - ",dirpath );
@@ -17,8 +17,8 @@ ImagesRouter.get('/produto/:productfolder/:codprod', async function (req, res, n
                 console.log("DIRETORIO EXISTENTE - LENDO ",dirpath+'/'+productfolder );
                 let files=fs.readdirSync(dirpath+'/'+productfolder);
                     if(files.length>0){
-                        extension=path.parse(files[0]).ext
-                        existFile=files.find(element => element ===  product+extension)
+                        let extension=path.parse(files[0]).ext
+                        let existFile=files.find(element => element ===  product+extension)
                         console.log(existFile)
                         res.sendFile(dirpath+"/"+productfolder+"/"+product+extension,function(err) {
                             if(err){

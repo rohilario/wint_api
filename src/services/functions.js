@@ -2160,6 +2160,7 @@ async function getPixToken(req, res){
       }
     }
   }
+  
 
   module.exports={
     getFunc:getFunc,

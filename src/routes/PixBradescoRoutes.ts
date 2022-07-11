@@ -1,12 +1,12 @@
-const express = require('express')
-const PixBradescoRoutes = express.Router();  
-const functions=require('../services/PixBradescoFunctions')
+const expressPixBradesco = require('express')
+const PixBradescoRoutes = expressPixBradesco.Router();  
+const functionsPixBradesco=require('../services/PixBradescoFunctions')
 const functions_pix=require('../services/functions')
 
 
 PixBradescoRoutes.get('/token', function (req,res) {
 
-    functions.GetTokenBradesco(req, res); 
+    functionsPixBradesco.GetTokenBradesco(req, res); 
 
 })
 
@@ -20,7 +20,7 @@ let solicitacaoPagador=req.body.solicitacaoPagador
 //console.log(authorization)
 let dados=null;
 if(cpfcnpj.length==11){
-     dados={
+     const dados={
         "calendario": {
         "expiracao": "3600"
         },
@@ -37,7 +37,7 @@ if(cpfcnpj.length==11){
         "nomePersonalizacaoQr":"ROFE",
         }  
 }else{
-     dados={
+     const dados={
         "calendario": {
         "expiracao": "3600"
         },
@@ -55,7 +55,7 @@ if(cpfcnpj.length==11){
         }  
 }
     
-    functions.RegistraPix(req,res,dados, authorization); 
+functionsPixBradesco.RegistraPix(req,res,dados, authorization); 
 
 })
 
@@ -66,7 +66,7 @@ PixBradescoRoutes.get('/pagamentos/:txid', function (req,res) {
     const authorization=req.headers.authorization
     console.log('TXID: ' + txid)
 
-    functions.getPagamentoPixId(req, res, authorization, txid); 
+    functionsPixBradesco.getPagamentoPixId(req, res, authorization, txid); 
 
 })
 
@@ -74,7 +74,7 @@ PixBradescoRoutes.get('/webhook/cadastrar/:key', function(req,res){
     const key=req.params.key
     const authorization=req.headers.authorization
     console.log(key)
-    functions.InsertWebhookPix(req,res,key,authorization)
+    functionsPixBradesco.InsertWebhookPix(req,res,key,authorization)
 })
 
 PixBradescoRoutes.get('/webhook/notification', function(req,res){

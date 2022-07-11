@@ -1,6 +1,6 @@
-const express = require('express')
-const ActionRouter = express.Router();  
-const functions=require('../services/functions')
+const expressActions = require('express')
+const ActionRouter = expressActions.Router();  
+const functionsActions=require('../services/functions')
 
 ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
     const domain=req.params.domain;
@@ -27,7 +27,7 @@ ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
     //const emailcliente=req.body.data.emailcliente;
     const vlpix=req.body.data.vlpix;
     const duplics=req.body.data.duplicatas;
-    config={
+    const config={
         "host":host,
         "port":port,
         "secure":secure,
@@ -42,7 +42,7 @@ ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
         "subject":subject,
         "text":text
       }
-      parametro={
+      const parametro={
       "codcli":codcli,
       "cliente":cliente,
       "numped":numped,
@@ -59,7 +59,7 @@ ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
       res.status(200)
       res.json(config)
       //console.log(parametro)
-      functions.DisparoEmail(config,parametro,req, res); 
+      functionsActions.DisparoEmail(config,parametro,req, res); 
     }else{ 
       res.json({"ERROR":res})
       res.status(500)

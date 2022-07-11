@@ -1,20 +1,20 @@
-const express = require('express')
-const DuplicatasRouter = express.Router();  
-const functions=require('../services/functions')
+const expressDuplicatas = require('express')
+const DuplicatasRouter = expressDuplicatas.Router();  
+const functionsDuplicatas=require('../services/functions')
 const duplicfunctions=require('../services/DuplicatasFunctions')
 
 DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
     const codcli=req.params.codcli
     //console.log(req)
 
-    obj={
+    const obj={
         "codcli":codcli
     }
     //console.log(obj)
     if(obj){
       //res.status(200)
       //res.json(obj)
-      functions.DuplicatasAbertas(obj,req, res); 
+      functionsDuplicatas.DuplicatasAbertas(obj,req, res); 
       //console.log(req.body.data.cpfcnpj)  
     }else{ 
       
@@ -29,18 +29,16 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
       const codrca=req.params.codrca
       //console.log(req)
   
-      obj={
+      const obj={
           "codrca":codrca
       }
       //console.log(obj)
       if(obj){
         //res.status(200)
         //res.json(obj)
-        functions.GetDuplicRCA(obj,req, res); 
+        functionsDuplicatas.GetDuplicRCA(obj,req, res); 
         //console.log(req.body.data.cpfcnpj)  
       }else{ 
-        
-        res.json({"ERROR":codcli})
         res.status(404)
       }
       
@@ -52,7 +50,7 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
         const codcli=req.params.codcli
         //console.log(req)
     
-        obj={
+        const obj={
             "codrca":codrca,
             "codcli":codcli
         }
@@ -74,7 +72,7 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
         DuplicatasRouter.get('/aberto/codrca/:codrca', function (req,res) {
         const codrca=req.params.codrca
     
-        obj={
+        const obj={
             "codrca":codrca,
         }
         //console.log(obj)
@@ -84,8 +82,6 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
           duplicfunctions.getDuplicAbertoRca(req, res, obj); 
           //console.log(req.body.data.cpfcnpj)  
         }else{ 
-          
-          res.json({"ERROR":codcli})
           res.status(404)
         }
         

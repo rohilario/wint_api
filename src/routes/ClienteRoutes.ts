@@ -1,6 +1,10 @@
-const express = require('express')
-const ClienteRouter = express.Router();  
+const expressClientes = require('express')
+const ClienteRouter = expressClientes.Router();  
 const clientefunctions=require('../services/ClientesFunctions')
+const AppDataSource=require("../config/data-source");
+//import AppDataSource  from "../config/data-source"
+
+//import { DataSource } from "typeorm"
 
       //ENDPOINT PARA BUSCAR DUPLICATAS POR RCA
       ClienteRouter.get('/codrca/:codrca/:codcli', function (req,res) {
@@ -8,7 +12,7 @@ const clientefunctions=require('../services/ClientesFunctions')
         const codcli=req.params.codcli
         //console.log(req)
     
-        obj={
+        const obj={
             "codrca":codrca,
             "codcli":codcli
         }
@@ -26,5 +30,13 @@ const clientefunctions=require('../services/ClientesFunctions')
         
         })
     
+      //ENDPOINT PARA BUSCAR DUPLICATAS POR RC
+      ClienteRouter.get('/teste', async function (req:Request,res:Response) {
+        let users= await AppDataSource.default.manager.query('SELECT * FROM PCCLIENT C WHERE C.CODCLI=51190')
+
+
+        console.log(users)
+      })
+
 
 module.exports=ClienteRouter;
