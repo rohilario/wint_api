@@ -1,21 +1,16 @@
-const oracledb = require('oracledb');
-const fs = require('fs');
-const path = require('path');
-const nodemailer = require('nodemailer');
-const axios = require('axios');
-
+const oracledb_DuplicatasFunctions = require('oracledb');
 
   //GET DUPLICATAS EM ABERTO RCA - GERACAO DE PIX
   async function GetDuplicRCACliente(req, res, params){
     try {
-      connection = await oracledb.getConnection({
+     var connection = await oracledb_DuplicatasFunctions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET DUPLIC RCA');
       // run query to get all employees
-      result = await connection.execute(
+      let result = await connection.execute(
       `SELECT P.CODFILIAL,P.DUPLIC,P.PREST,P.NUMPED,P.VALOR,P.CODCLI,C.CLIENTE,P.DTVENC
       ,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
       ,CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END AS VALOR_MULTA
@@ -60,7 +55,7 @@ const axios = require('axios');
         //console.log(after_session)
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -69,7 +64,7 @@ const axios = require('axios');
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC RCA');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -79,14 +74,14 @@ const axios = require('axios');
       //GET DUPLICATAS EM ABERTO RCA AGRUPADOS POR VALOR
       async function getDuplicAbertoRca(req, res, params){
         try {
-          connection = await oracledb.getConnection({
+          var connection = await oracledb_DuplicatasFunctions.getConnection({
             user: process.env.USERNAME,
             password: process.env.PASSWORD,
             connectString: process.env.CONNECTSTRING
           });
           console.log('CONCETADO NO BANCO! -- GET DUPLIC ABERTO RCA');
           // run query to get all employees
-          result = await connection.execute(
+          let result = await connection.execute(
           `SELECT P.CODCLI,C.CLIENTE,SUM(P.VALOR) AS VALOR_DEVIDO_SEM_MULTA_JUROS 
           ,SUM((P.VALOR + (CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END) + ((CASE WHEN P.DTVENC<SYSDATE THEN ROUND((SYSDATE-P.DTVENC)-1) ELSE 0 END) * CASE WHEN P.DTVENC<SYSDATE THEN (((5*P.VALOR)/100)/30) ELSE 0 END ) )) AS VLJUROSMULTADIASCORRIDOS
           FROM PCPREST P, PCCLIENT C WHERE P.CODCLI=C.CODCLI AND P.DTPAG IS NULL AND P.CODUSUR=:1 GROUP BY P.CODCLI,C.CLIENTE`,[params.codrca]);
@@ -108,7 +103,7 @@ const axios = require('axios');
             })
             return res.send(doubles);
           }
-        } catch (err) {
+        } catch (err:any) {
           //send error message
           return res.send(err.message);
         } finally {
@@ -117,7 +112,7 @@ const axios = require('axios');
               // Always close connections
               await connection.close();
               console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC ABERTO RCA');
-            } catch (err) {
+            } catch (err:any) {
               console.error(err.message);
             }
           }

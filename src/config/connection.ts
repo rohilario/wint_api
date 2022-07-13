@@ -31,7 +31,7 @@ const oracledb = require('oracledb');
       // Now the pool is running, it can be used
       //await dostuff();
   
-    } catch (err) {
+    } catch (err:any) {
       console.error('init() error: ' + err.message);
     } finally {
       //await closePoolAndExit();
@@ -49,15 +49,15 @@ const oracledb = require('oracledb');
 
       return connection;
 
-  }catch{
+  }catch(err:any){
       //send error message
-      return res.send(err.message);
+      return err.message;
   }finally {
       if (connection) {
         try {
           // Always close connections
-          //await connection.close();
-        } catch (err) {
+          await connection.close();
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -67,27 +67,21 @@ const oracledb = require('oracledb');
   async function checkConnection() {
     console.log("CHECANDO CONEXAO COM O ORACLE A PARTIR DO SPOOL... 'appspool' ")
     try {
-      connection = await oracledb.getConnection('appspool');
+      const connection:any = await oracledb.getConnection('appspool');
       console.log('CONECTADO NO BANCO ORACLE! -- CHECK CONECTION');
-    } catch (err) {
-      console.error(err.message);
-    } finally {
-      if (connection) {
-        console.log("CONEXAO COM O ORACLE ESTABELECIDA COM SUCESSO!")
-        try {
-          // Always close connections
-          await connection.close(); 
-          console.log('CONEXAO TESTADA COM SUCESSO! MANTENDO ATIVA.. -- CHECK CONECTION');
-          console.log("-------------------------------------------------------------------------------------------------------------------------------------");
-          console.log("----------------------------------------------------#AGUARDANDO REQUESTS...#---------------------------------------------------------");
-          console.log("-----------------------------------------------# WINTHOR API ROFE DISTRIBUIDORA #----------------------------------------------------");
-          console.log("-------------------------------------------------------------------------------------------------------------------------------------");
-          //await closePool();  
-        } catch (err) {
-          console.log('ERRO DE CONEXAO')
-          console.error(err.message);
-        }
+      if(connection){
+        console.log('CONEXAO TESTADA COM SUCESSO! MANTENDO ATIVA.. -- CHECK CONECTION');
+        console.log("-------------------------------------------------------------------------------------------------------------------------------------");
+        console.log("----------------------------------------------------#AGUARDANDO REQUESTS...#---------------------------------------------------------");
+        console.log("-----------------------------------------------# WINTHOR API ROFE DISTRIBUIDORA #----------------------------------------------------");
+        console.log("-------------------------------------------------------------------------------------------------------------------------------------");
+      }else{
+        console.log('nao conectado')
       }
+    } catch (err) {
+      let errr=err
+      console.error(errr);
+      //await connection.close(); 
     }
   }
 

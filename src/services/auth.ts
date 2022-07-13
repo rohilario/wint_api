@@ -47,7 +47,7 @@ async function validUserRCA(req,res,params){
 
 function CreateJWT(params,req,res){
   let id=params.pass || params.matricula
-    token = jwt.sign({ id }, process.env.SECRET, {
+    const token = jwt.sign({ id }, process.env.SECRET, {
       expiresIn: 300 // expires in 5min
     });
     console.log('TOKEN GERADO COM SUCESSO!')
@@ -58,6 +58,7 @@ function CreateJWT(params,req,res){
 //Autorização
 function verifyJWT(req, res, next){
     var token = req.headers['x-access-token'];
+    console.log(token)
     if (!token) return res.status(401).json({ auth: false, message: 'No token provided.' });
     
     jwt.verify(token, process.env.SECRET, function(err, decoded) {

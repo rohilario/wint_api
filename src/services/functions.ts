@@ -1,22 +1,21 @@
-const oracledb = require('oracledb');
-const fs = require('fs');
-const path = require('path');
+const oracledb_Functions = require('oracledb');
+const fs_Functions = require('fs');
+const path_Functions = require('path');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 
   //GET USER WINTHOR POR NOME
   async function getUserAuth(req, res, auth){
     //console.log(auth)
-    let connection;
     
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET USER AUTH');
-      result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1),R.MATRICULA FROM PCEMPR R WHERE 
+      const result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1),R.MATRICULA FROM PCEMPR R WHERE 
       R.USUARIOBD=:1 --AND LTRIM(RTRIM(UPPER(R.USUARIOBD))) = :1
       AND R.DT_EXCLUSAO IS NULL AND R.SITUACAO='A' AND R.CODSETOR=8 AND R.USUARIOBD=:1`,[auth.usr]);
   
@@ -38,7 +37,7 @@ const axios = require('axios');
         return user;
       }
     
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -47,7 +46,7 @@ const axios = require('axios');
           // Always close connections
           //await connection.close();
           //console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE NOME');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -56,17 +55,15 @@ const axios = require('axios');
 
   //GET RCA WINTHOR POR NOME
   async function getRCAAuth(req, res, auth){
-    //console.log(auth)
-    let connection;
-    
+
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET RCA AUTH');
-      result = await connection.execute(`SELECT U.CODUSUR,U.NOME,U.EMAIL FROM PCUSUARI U WHERE U.DTEXCLUSAO IS NULL AND U.BLOQUEIO='N' AND U.CODUSUR=:1`,[auth.pass]);
+      let result = await connection.execute(`SELECT U.CODUSUR,U.NOME,U.EMAIL FROM PCUSUARI U WHERE U.DTEXCLUSAO IS NULL AND U.BLOQUEIO='N' AND U.CODUSUR=:1`,[auth.pass]);
   
       if (result.rows.length == 0) {
         //query return zero employees
@@ -91,7 +88,7 @@ const axios = require('axios');
 
       }
     
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -100,7 +97,7 @@ const axios = require('axios');
           // Always close connections
           //await connection.close();
           //console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE NOME');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -110,7 +107,7 @@ const axios = require('axios');
 //GET USER WINTHOR POR MATRICULA
 async function getFunc(parameter,req, res){
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -118,7 +115,7 @@ async function getFunc(parameter,req, res){
   
       console.log('CONCETADO NO BANCO! -- GET MATRICULA');
       // run query to get all employees
-      result = await connection.execute("SELECT R.MATRICULA,R.NOME,R.CODIGOPERFIL FROM PCEMPR R WHERE 1=1 AND R.MATRICULA=:1 AND R.CODFILIAL=:2 AND R.CODPERFIL IS NOT NULL",[parameter.matricula,parameter.codfilial]);
+      let result = await connection.execute("SELECT R.MATRICULA,R.NOME,R.CODIGOPERFIL FROM PCEMPR R WHERE 1=1 AND R.MATRICULA=:1 AND R.CODFILIAL=:2 AND R.CODPERFIL IS NOT NULL",[parameter.matricula,parameter.codfilial]);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO -- GET MATRICULA');
@@ -134,7 +131,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -143,7 +140,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET MATRICULA');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -153,7 +150,7 @@ async function getFunc(parameter,req, res){
   //GET PEDIDO POR NUMCAR
   async function getNumpedFilial(parameter,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -161,7 +158,7 @@ async function getFunc(parameter,req, res){
   
       console.log('CONCETADO NO BANCO!');
       // run query to get all employees
-      result = await connection.execute("SELECT P.NUMPED,P.CODFILIAL,P.CODFILIALNF FROM PCPEDC P WHERE P.NUMCAR=:1",[parameter.numcar]);
+      let result = await connection.execute("SELECT P.NUMPED,P.CODFILIAL,P.CODFILIALNF FROM PCPEDC P WHERE P.NUMCAR=:1",[parameter.numcar]);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO');
@@ -177,7 +174,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -186,7 +183,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -196,7 +193,7 @@ async function getFunc(parameter,req, res){
   //GET PROD POR CODPROD
   async function getProdut(parameter,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -204,7 +201,7 @@ async function getFunc(parameter,req, res){
   
       console.log('CONCETADO NO BANCO!-- GET PROD CODPROD');
       // run query to get all employees
-      result = await connection.execute("SELECT P.CODPROD,P.DESCRICAO,P.QTUNITCX FROM PCPRODUT P WHERE P.CODPROD=:1",[parameter.codprod]);
+      let result = await connection.execute("SELECT P.CODPROD,P.DESCRICAO,P.QTUNITCX FROM PCPRODUT P WHERE P.CODPROD=:1",[parameter.codprod]);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO -- GET PROD CODPROD');
@@ -220,7 +217,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -229,7 +226,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PROD CODPROD');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -239,17 +236,17 @@ async function getFunc(parameter,req, res){
   //GET PEDIDO POR NUMPED - CODFILIAL != CODFILIALNF
   async function getPedido(parameter,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO!-- GET PEDIDO FILIAL DIVERGENTE');
       // run query to get all employees
-      result = await connection.execute("SELECT P.NUMPED,P.CODFILIAL,P.CODFILIALNF FROM PCPEDC P WHERE P.CODFILIAL<>CODFILIALNF AND P.POSICAO IN ('L','M') AND P.CODFILIAL IN (1,6,8) AND P.NUMPED=:1",[parameter.numped]);
+      let result = await connection.execute("SELECT P.NUMPED,P.CODFILIAL,P.CODFILIALNF FROM PCPEDC P WHERE P.CODFILIAL<>CODFILIALNF AND P.POSICAO IN ('L','M') AND P.CODFILIAL IN (1,6,8) AND P.NUMPED=:1",[parameter.numped]);
       if (result.rows.length == 0) {
         //query return zero employees
-        objreturn={
+        let objreturn={
           qtdregistro:0,
           msg:"NENHUM REGISTRO ENCONTRADO -- GET PEDIDO FILIAL DIVERGENTE"
         }
@@ -266,7 +263,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -275,7 +272,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PEDIDO FILIAL DIVERGENTE');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -286,7 +283,7 @@ async function getFunc(parameter,req, res){
   async function updateProdutQtdMasterCompra(parametro,req, res) {
     
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -296,7 +293,7 @@ async function getFunc(parameter,req, res){
         if(parametro.novaembalagem  && parametro.codprod!=null){
           console.log('NOVA EMBALAGEM: ' + parametro.novaembalagem)
           console.log('COD PROD: ' + parametro.codprod)
-          result = await connection.execute("UPDATE PCPRODUT P SET P.QTUNITCX=:1 WHERE P.CODPROD=:2",[parametro.novaembalagem,parametro.codprod],{autoCommit: true});
+          let result = await connection.execute("UPDATE PCPRODUT P SET P.QTUNITCX=:1 WHERE P.CODPROD=:2",[parametro.novaembalagem,parametro.codprod],{autoCommit: true});
           //result = await connection.execute("SELECT P.CODPROD, P.DESCRICAO FROM PCPRODUT P WHERE P.CODPROD=:1",[parametro.codprod],{autoCommit: true});
           if (result.affectedRows == 0) {
             //query return zero employees
@@ -310,7 +307,7 @@ async function getFunc(parameter,req, res){
         }
         
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return console.error(err.message + ' UPDATE PRODUT EMBALAGEM MASTER');
     } finally {
@@ -319,7 +316,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - UPDATE PRODUT EMBALAGEM MASTER');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' UPDATE PRODUT EMBALAGEM MASTER');
         }
       }
@@ -330,7 +327,7 @@ async function getFunc(parameter,req, res){
   async function updatePedidoFilial(parametro,req, res) {
     
     try {
-      connection = await oracledb.getConnection({
+     var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -340,7 +337,7 @@ async function getFunc(parameter,req, res){
         if(parametro.numped  && parametro.codfilial!=null){
           console.log('NOVA FILIAL: ' + parametro.codfilial)
           console.log('NUMPED: ' + parametro.numped)
-          result = await connection.execute("UPDATE PCPEDC P SET P.CODFILIAL=:1 WHERE P.NUMPED=:2",[parametro.codfilial,parametro.numped],{autoCommit: true});
+          let result = await connection.execute("UPDATE PCPEDC P SET P.CODFILIAL=:1 WHERE P.NUMPED=:2",[parametro.codfilial,parametro.numped],{autoCommit: true});
           //result = await connection.execute("SELECT P.CODFILIAL, P.CODFILIALNF FROM PCPEDC P WHERE P.CODFILIAL<>CODFILIALNF AND P.NUMPED=:1",[parametro.numped],{autoCommit: true});
           if (result.affectedRows == 0) {
             //query return zero employees
@@ -354,7 +351,7 @@ async function getFunc(parameter,req, res){
         }
         
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return console.error(err.message + ' UPDATE PEDIDO CODFILIAL');
     } finally {
@@ -363,7 +360,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - UPDATE PEDIDO CODFILIAL');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' UPDATE PRODUT EMBALAGEM MASTER');
         }
       }
@@ -373,14 +370,14 @@ async function getFunc(parameter,req, res){
   //GET OS POR CODIGO FILIAL - 1759
   async function getOs1759(parameter,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO!-- GET OS POR FILIAL - 1759');
       // run query to get all employees
-      result = await connection.execute(`SELECT PCMOVENDPEND.DTESTORNO, PCMOVENDPEND.DTINICIOOS,                                                 
+      let result = await connection.execute(`SELECT PCMOVENDPEND.DTESTORNO, PCMOVENDPEND.DTINICIOOS,                                                 
       PCMOVENDPEND.POSICAO, PCMOVENDPEND.CODFUNCOS,                                                    
       PCMOVENDPEND.DATA, PCWMS.CODCLI,                                                                 
       PCCLIENT.CLIENTE, NVL(PCTIPOOS.UTILIZACHECKOUT,'N') UTILIZACHECKOUT, PCMOVENDPEND.SEQCONF,     
@@ -400,7 +397,7 @@ async function getFunc(parameter,req, res){
       AND PCMOVENDPEND.CODFILIAL = :2`,[parameter.numos,parameter.codfilial]);
       if (result.rows.length == 0) {
         //query return zero employees
-        objreturn={
+        let objreturn={
           qtdregistro:0,
           msg:"NENHUM REGISTRO ENCONTRADO -- GET OS POR FILIAL 1759"
         }
@@ -430,7 +427,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -439,7 +436,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET OS POR FILIAL 1759');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -450,7 +447,7 @@ async function getFunc(parameter,req, res){
   async function getOsNumcar1759(parameter,req, res) {
     console.log(parameter.numcar)
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -458,7 +455,7 @@ async function getFunc(parameter,req, res){
       console.log('CONCETADO NO BANCO!-- GET OS POR NUMCAR FILIAL - 1759');
       // run query to get all employees
       console.log(parameter)
-      result = await connection.execute(`SELECT PCMOVENDPEND.DTESTORNO, PCMOVENDPEND.DTINICIOOS,                                                 
+      let result = await connection.execute(`SELECT PCMOVENDPEND.DTESTORNO, PCMOVENDPEND.DTINICIOOS,                                                 
       PCMOVENDPEND.POSICAO, PCMOVENDPEND.CODFUNCOS,                                                    
       PCMOVENDPEND.DATA, PCWMS.CODCLI,                                                                 
       PCCLIENT.CLIENTE, NVL(PCTIPOOS.UTILIZACHECKOUT,'N') UTILIZACHECKOUT, PCMOVENDPEND.SEQCONF,     
@@ -481,7 +478,7 @@ async function getFunc(parameter,req, res){
       AND PCMOVENDPEND.CODFILIAL = :2`,[parameter.numcar,parameter.codfilial]);
       if (result.rows.length == 0) {
         //query return zero employees
-        objreturn={
+        let objreturn={
           
           qtdregistro:0,
           msg:"NENHUM REGISTRO ENCONTRADO -- GET OS POR NUMCAR FILIAL 1759"
@@ -515,7 +512,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -524,7 +521,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET OS POR NUMCAR FILIAL 1759');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -534,17 +531,17 @@ async function getFunc(parameter,req, res){
   //GET AUTORIZACAO PERFIL TIPO OS
   async function getAutorizacaoOs(parameter,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO!-- GET AUTORIZACAO PERFIL TIPO OS');
       // run query to get all employees
-      result = await connection.execute(`SELECT * FROM PCAUTORIOS`);
+      let result = await connection.execute(`SELECT * FROM PCAUTORIOS`);
       if (result.rows.length == 0) {
         //query return zero employees
-        objreturn={
+        let objreturn={
           qtdregistro:0,
           msg:"NENHUM REGISTRO ENCONTRADO -- GET AUTORIZACAO PERFIL TIPO OS"
         }
@@ -560,7 +557,7 @@ async function getFunc(parameter,req, res){
         console.log(doubles[0])
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -569,7 +566,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET AUTORIZACAO PERFIL TIPO OS');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -578,17 +575,17 @@ async function getFunc(parameter,req, res){
 
   
   function BuscaFoto(obj,req, res){
-    if (!fs.existsSync(obj.product)){
+    if (!fs_Functions.existsSync(obj.product)){
        console.log("SEM DIRETORIO - ",obj.product );
         return;
     }
 
-    var files=fs.readdirSync(obj.dirpath);
+    var files=fs_Functions.readdirSync(obj.dirpath);
     for(var i=0;i<files.length;i++){
-        var filename=path.join(obj.dirpath,files[i]);
-        var stat = fs.lstatSync(filename);
+        var filename=path_Functions.join(obj.dirpath,files[i]);
+        var stat = fs_Functions.lstatSync(filename);
         if (stat.isDirectory()){
-          BuscaFoto(filename,obj.product); //recurse
+          BuscaFoto(filename,obj.product,obj.product); //recurse
         }
         else if (filename.indexOf(obj.product)>=0) {
             console.log('Arquivo Encontrado:',filename);
@@ -601,7 +598,7 @@ async function getFunc(parameter,req, res){
   async function FinalizaOS1759(parametro,req, res) {
     
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -610,7 +607,7 @@ async function getFunc(parameter,req, res){
         console.log('CONECTADO NO BANCO - FINALIZA OS 1759');
         if(parametro.codfunc  && parametro.numcar!=null){
           console.log('CARREGAMENTO: ' + parametro.numcar + ' CODFUNC:' + parametro.codfunc)
-          result_finalizaos = await connection.execute(`UPDATE PCMOVENDPEND M SET M.DTINICIOOS = SYSDATE, M.CODFUNCOS = :1, 
+          let result_finalizaos = await connection.execute(`UPDATE PCMOVENDPEND M SET M.DTINICIOOS = SYSDATE, M.CODFUNCOS = :1, 
           M.CODFUNCCOFERENTE = :2, M.CODFUNCCONF = :3
           ,M.CODFUNCEMBALADOR = :4, M.DTINICIOCONFERENCIA = SYSDATE
           ,M.POSICAO = 'A',M.CODFUNCOSFIM = :5,M.DTFIMOSFILA = SYSDATE,M.GRUPOESTFIMOS = 03,M.DTFIMSEPARACAO = NVL(DTFIMSEPARACAO, SysDate)
@@ -624,8 +621,8 @@ async function getFunc(parameter,req, res){
             console.log('NENHUM REGISTRO ATUALIZADO! - QTD: ' + result_finalizaos);
           } else {
             //console.log(result_finalizaos)
-            result_pcpedi= await connection.execute('UPDATE PCPEDI SET CODFUNCSEP=:1,CODFUNCCONF=:2, DATACONF=SYSDATE WHERE NUMCAR=:3 AND CODPROD=(SELECT M.CODPROD FROM PCMOVENDPEND M, PCENDERECO E WHERE M.NUMCAR=448122 AND M.CODENDERECO=E.CODENDERECO AND E.ESTACAO=3)',[parametro.codfunc,parametro.codfunc,parametro.numcar],{autoCommit:true})
-            result_pcpedc= await connection.execute('UPDATE PCPEDC SET CODFUNCCONF = :1 WHERE NUMCAR=:2 AND NUMPED=(SELECT M.NUMPED FROM PCMOVENDPEND M, PCENDERECO E WHERE M.NUMCAR=:3 AND M.CODENDERECO=E.CODENDERECO AND E.ESTACAO=3)            ',[parametro.codfunc,parametro.numcar,parametro.numcar],{autoCommit:true})      
+            let result_pcpedi= await connection.execute('UPDATE PCPEDI SET CODFUNCSEP=:1,CODFUNCCONF=:2, DATACONF=SYSDATE WHERE NUMCAR=:3 AND CODPROD=(SELECT M.CODPROD FROM PCMOVENDPEND M, PCENDERECO E WHERE M.NUMCAR=448122 AND M.CODENDERECO=E.CODENDERECO AND E.ESTACAO=3)',[parametro.codfunc,parametro.codfunc,parametro.numcar],{autoCommit:true})
+            let result_pcpedc= await connection.execute('UPDATE PCPEDC SET CODFUNCCONF = :1 WHERE NUMCAR=:2 AND NUMPED=(SELECT M.NUMPED FROM PCMOVENDPEND M, PCENDERECO E WHERE M.NUMCAR=:3 AND M.CODENDERECO=E.CODENDERECO AND E.ESTACAO=3)            ',[parametro.codfunc,parametro.numcar,parametro.numcar],{autoCommit:true})      
             let retorno={"PCMOVENDPEND":result_finalizaos,"PCPEDC":result_pcpedc,"PCPEDI":result_pcpedi}
             console.log(retorno)
             return res.send(retorno)
@@ -635,7 +632,7 @@ async function getFunc(parameter,req, res){
         }
         
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return console.error(err.message + ' ERRO FINALIZA OS 1759');
     } finally {
@@ -644,7 +641,7 @@ async function getFunc(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - FINALIZA OS 1759');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' FINALIZA OS 1759');
         }
       }
@@ -654,7 +651,7 @@ async function getFunc(parameter,req, res){
 //GET PEDIDOS PARA FATURAMENTO POR PIX - FRENTE DE LOJA - 1432
 async function PedidosFrenteLoja(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
@@ -664,7 +661,7 @@ async function PedidosFrenteLoja(parameter,req, res){
     //after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
-    result = await connection.execute(
+    let result = await connection.execute(
     `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,M.POSICAO AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE
     FROM PCPEDC P, PCCLIENT C, PCMOVENDPEND M
     WHERE C.CODCLI=P.CODCLI AND P.NUMPED=M.NUMPED
@@ -699,7 +696,7 @@ async function PedidosFrenteLoja(parameter,req, res){
       console.log(doubles)
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -708,7 +705,7 @@ async function PedidosFrenteLoja(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PEDIDO FRENTE DE LOJA');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -718,17 +715,17 @@ async function PedidosFrenteLoja(parameter,req, res){
 //GET PEDIDOS PARA FATURAMENTO POR PIX - FRENTE DE LOJA - VENDEDOR BALCAO
 async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
-    session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
-    alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
-    after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    let session = await connection.execute("select value from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
+    let alter_session = await connection.execute("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,'");
+    let after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
-    result = await connection.execute(
+    let result = await connection.execute(
     `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE
     FROM PCPEDC P, PCCLIENT C
     WHERE C.CODCLI=P.CODCLI
@@ -763,7 +760,7 @@ async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
       //console.log(after_session)
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -772,7 +769,7 @@ async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PEDIDO FRENTE DE LOJA');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -782,7 +779,7 @@ async function PedidosFrenteLojaVendedorBalcao(parameter,req, res){
 //GET PEDIDOS PARA FATURAMENTO POR PIX - PEDIDOS RCA - VENDAS EXTERNAS
 async function PedidosRca(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
@@ -792,7 +789,7 @@ async function PedidosRca(parameter,req, res){
     //after_session = await connection.execute("select value as value_after from nls_session_parameters where parameter = 'NLS_NUMERIC_CHARACTERS'");
     console.log('CONCETADO NO BANCO! -- GET PEDIDO FRENTE DE LOJA');
     // run query to get all employees
-    result = await connection.execute(
+    let result = await connection.execute(
     `SELECT P.CODFILIAL,P.NUMPED,P.VLATEND AS VALORTOTALPED,P.CODCLI,C.CLIENTE,P.DATA,P.POSICAO,P.ORIGEMPED,'C' AS POSICAOOS,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
     FROM PCPEDC P, PCCLIENT C
     WHERE C.CODCLI=P.CODCLI
@@ -828,7 +825,7 @@ async function PedidosRca(parameter,req, res){
       //console.log(after_session)
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -837,7 +834,7 @@ async function PedidosRca(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PEDIDO FRENTE DE LOJA');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -849,7 +846,7 @@ async function PedidosRca(parameter,req, res){
     //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -858,7 +855,7 @@ async function PedidosRca(parameter,req, res){
         console.log('CONECTADO NO BANCO - InsertPix');
         if(parametro.txid!=null  && parametro.codfilial!=null){
           console.log(parametro)
-          result = await connection.execute(`INSERT INTO PIX(
+          var result = await connection.execute(`INSERT INTO PIX(
             pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
             numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
             VALUES (
@@ -880,7 +877,7 @@ async function PedidosRca(parameter,req, res){
           return res.status(400).send(result)
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - InsertPix');
       return  res.send(err) 
@@ -890,78 +887,24 @@ async function PedidosRca(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - InsertPix');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' InsertPix');
         }
       }
     }
   }
-
-  //INSERT PIX GERADOS - FRENTE DE LOJA
-  async function InsertPix(parametro,req, res) {
-    //console.log(parametro)
-    let dtexpiracao = new Date().toLocaleString('pt-BR')
-    try {
-      connection = await oracledb.getConnection({
-        user: process.env.USERNAME,
-        password: process.env.PASSWORD,
-        connectString: process.env.CONNECTSTRING
-      });
-    
-        console.log('CONECTADO NO BANCO - InsertPix');
-        if(parametro.txid!=null  && parametro.codfilial!=null){
-          console.log(parametro)
-          result = await connection.execute(`INSERT INTO PIX(
-            pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
-            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
-            VALUES (
-            (SELECT (MAX(P.PIXID)+1) FROM PIX P),:1,:2,:3,:4,
-            :5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)`,
-            [parametro.txid,parametro.numped,parametro.vlpix,parametro.cpfcnpj,parametro.txtimgqrcode
-            ,parametro.numrevisao,parametro.status,dtexpiracao,parametro.obspix,parametro.dtcriacaopix
-            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time,parametro.banco,parametro.tipopix]
-            ,{autoCommit: true});
-          if (result.affectedRows == 0) {
-            
-            console.log('NENHUM PIX INSERRIDO! - QTD: ' + result);
-          } else {
-            console.log(result)
-            return res.send(result)
-          }
-        }else{
-          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
-          return res.status(400).send(result)
-        }
-                   
-    } catch (err) {
-      //send error message
-      console.error(err.message + ' - InsertPix');
-      return  res.send(err) 
-    } finally {
-      if (connection) {
-        try {
-          // Always close connections
-          await connection.close();
-          console.log('CONEXAO FECHADA COM SUCESSO! - InsertPix');
-        } catch (err) {
-          console.error(err.message + ' InsertPix');
-        }
-      }
-    }
-  }
-
 
   //GET DUPLICATAS EM ABERTO RCA - GERACAO DE PIX
   async function GetDuplicRCA(parameter,req, res){
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET DUPLIC RCA');
       // run query to get all employees
-      result = await connection.execute(
+      let result = await connection.execute(
       `SELECT P.CODFILIAL,P.DUPLIC,P.PREST,P.NUMPED,P.VALOR,P.CODCLI,C.CLIENTE,P.DTVENC
       ,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
       ,CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END AS VALOR_MULTA
@@ -1005,7 +948,7 @@ async function PedidosRca(parameter,req, res){
         //console.log(after_session)
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -1014,61 +957,8 @@ async function PedidosRca(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC RCA');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
-        }
-      }
-    }
-  }
-
-  //INSERT PIX GERADOS - FRENTE DE LOJA
-  async function InsertPix(parametro,req, res) {
-    //console.log(parametro)
-    let dtexpiracao = new Date().toLocaleString('pt-BR')
-    try {
-      connection = await oracledb.getConnection({
-        user: process.env.USERNAME,
-        password: process.env.PASSWORD,
-        connectString: process.env.CONNECTSTRING
-      });
-    
-        console.log('CONECTADO NO BANCO - InsertPix');
-        if(parametro.txid!=null  && parametro.codfilial!=null){
-          console.log(parametro)
-          result = await connection.execute(`INSERT INTO PIX(
-            pixid,txid ,numped,vlpix,cpfcnpj,txtimgqrcode,
-            numrevisao,status,dtexpiracao,obspix,dtcriacaopix,codfilial,codfuncpix,expiration_time,banco,tipopix) 
-            VALUES (
-            (SELECT (MAX(P.PIXID)+1) FROM PIX P),:1,:2,:3,:4,
-            :5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)`,
-            [parametro.txid,parametro.numped,parametro.vlpix,parametro.cpfcnpj,parametro.txtimgqrcode
-            ,parametro.numrevisao,parametro.status,dtexpiracao,parametro.obspix,parametro.dtcriacaopix
-            ,parametro.codfilial,parametro.codfuncpix,parametro.expiration_time,parametro.banco,parametro.tipopix]
-            ,{autoCommit: true});
-          if (result.affectedRows == 0) {
-            
-            console.log('NENHUM PIX INSERRIDO! - QTD: ' + result);
-          } else {
-            console.log(result)
-            return res.send(result)
-          }
-        }else{
-          console.log('DADOS INVALIDOS - REVEJA OS PARAMETROS PASSADOS')
-          return res.status(400).send(result)
-        }
-                   
-    } catch (err) {
-      //send error message
-      console.error(err.message + ' - InsertPix');
-      return  res.send(err) 
-    } finally {
-      if (connection) {
-        try {
-          // Always close connections
-          await connection.close();
-          console.log('CONEXAO FECHADA COM SUCESSO! - InsertPix');
-        } catch (err) {
-          console.error(err.message + ' InsertPix');
         }
       }
     }
@@ -1078,7 +968,7 @@ async function PedidosRca(parameter,req, res){
   //GERA CREDITO PARA PEDIDOS FATURADOS POR PIX - 618
   async function geraCredito618(parametro,req, res) {
     try {
-      connection = await oracledb.getConnection({
+     var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -1092,7 +982,7 @@ async function PedidosRca(parameter,req, res){
       console.log('CONCETADO NO BANCO!-- geraCredito618');
       //1--PEGAR O VALOR CONCILIADO PARA SOMAR E REALIZAR UPDATE NA PCESTCR
       console.log('BANCO: ' + parametro.codbanco)
-      result_last_value = await connection.execute("SELECT PCESTCR.VALOR FROM PCESTCR WHERE CODCOB   = 'D' AND CODBANCO = :1",[parametro.codbanco]);
+      let result_last_value = await connection.execute("SELECT PCESTCR.VALOR FROM PCESTCR WHERE CODCOB   = 'D' AND CODBANCO = :1",[parametro.codbanco]);
       
       if (result_last_value.rows.length == 0) {
         console.log('NENHUM REGISTRO ENCONTRADO LAST VALUE PCESTCR - geraCredito618')
@@ -1111,11 +1001,11 @@ async function PedidosRca(parameter,req, res){
         //2--ATUALIZA O VALOR DA PCESTCR SOMANDO COM O VALOR DO CREDITO GERADO
         //update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = ('3846498.05') WHERE CODCOB = 'D' AND CODBANCO = 1",[doubles[0].value_estcr,parametro.valor ]);
         //update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = :3",[value_estcr_ftm,parametro_valor_fmt,parametro.codbanco]);
-        update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = :3",[doubles[0].value_estcr,parametro_valor_fmt,parametro.codbanco]);        
+        let update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (:1+:2) WHERE CODCOB = 'D' AND CODBANCO = :3",[doubles[0].value_estcr,parametro_valor_fmt,parametro.codbanco]);        
         let result_update_value_estcr=update_value_estcr;
         console.log(result_update_value_estcr);
 
-        result_proxnumtrans = await connection.execute("SELECT NVL(PROXNUMTRANS,1)+1 AS PROXNUMTRANS FROM PCCONSUM P");
+        let result_proxnumtrans = await connection.execute("SELECT NVL(PROXNUMTRANS,1)+1 AS PROXNUMTRANS FROM PCCONSUM P");
         if (result_last_value.rows.length == 0) {
           console.log('NENHUM REGISTRO ENCONTRADO PROXNUMTRANS - geraCredito618')
         } else {
@@ -1129,7 +1019,7 @@ async function PedidosRca(parameter,req, res){
         }else{
           console.log('VALOR DE CONCILIACAO ATUALIZADO COM SUCESSO!')
             //4--ATUALIZA O PROXNUMTRANS DA PCCONSUM PARA OUTRO REGISTRO FUTURO
-            update_proxnumtrans = await connection.execute("UPDATE PCCONSUM SET PROXNUMTRANS = PROXNUMTRANS + 1 WHERE PROXNUMTRANS IS NOT NULL",[]);
+            let update_proxnumtrans = await connection.execute("UPDATE PCCONSUM SET PROXNUMTRANS = PROXNUMTRANS + 1 WHERE PROXNUMTRANS IS NOT NULL",[]);
             let result_update_proxnumtrans=update_proxnumtrans;
             console.log(result_update_proxnumtrans)
             if(result_update_proxnumtrans.affectedRows == 0){
@@ -1148,7 +1038,7 @@ async function PedidosRca(parameter,req, res){
               //console.log(proxnumtrans[0].proxnumtrans+parametro.valor+valoratualizadopcestcr+hora+minuto+' - '+parametro.matricula+parametro.codcli+parametro.codfilial)
               //5--REALIZA O INSERT NA PCMOVCR COM O NUMTRANS RECEBIDO ANTERIORMENTE DA PCCONSUM
 
-              result_insert_pcmovcr = await connection.execute(`INSERT INTO PCMOVCR 
+              let result_insert_pcmovcr = await connection.execute(`INSERT INTO PCMOVCR 
               (NUMTRANS
                 ,DATA
                 ,CODBANCO
@@ -1185,15 +1075,15 @@ async function PedidosRca(parameter,req, res){
                 console.log(pcmovcr_sql)
                 let historico='CRED. AUTO. BAIXA PIX - FRENTE DE LOJA'
 
-                result_codigo = await connection.execute("SELECT DFSEQ_PCCRECLI.NEXTVAL AS PROXCODIGO FROM DUAL");
+                let result_codigo = await connection.execute("SELECT DFSEQ_PCCRECLI.NEXTVAL AS PROXCODIGO FROM DUAL");
                 const proxcodigo = result_codigo.rows.map(function(newsql) {return {proxcodigo:newsql[0]} })
-                result_numcred = await connection.execute("SELECT DFSEQ_PCCRECLI_NUMCRED.NEXTVAL AS PROXNUMCRED FROM DUAL");
+                let result_numcred = await connection.execute("SELECT DFSEQ_PCCRECLI_NUMCRED.NEXTVAL AS PROXNUMCRED FROM DUAL");
                 const proxnumcred = result_numcred.rows.map(function(newsql) {return {proxnumcred:newsql[0]} })
                 
                 console.log(parametro.codcli,parametro.codfilial,parametro.valor,parametro.matricula,
                   hora,minuto,historico,parametro.matricula,parametro.numped,
                   proxcodigo[0].proxcodigo,proxnumcred[0].proxnumcred,parametro.situacao)
-                result_insert_pccrecli = await connection.execute(`INSERT INTO PCCRECLI  
+                let result_insert_pccrecli = await connection.execute(`INSERT INTO PCCRECLI  
                 (CODCLI       	      
                 ,	DTLANC	            
                 ,	CODFILIAL	           
@@ -1225,7 +1115,7 @@ async function PedidosRca(parameter,req, res){
         connection.commit();
         return res.send('ok');
       }
-    } catch (err) {
+    } catch (err:any) {
       console.log(err)
       connection.rollback();
       return res.status(500).json({ error: err.message })
@@ -1238,7 +1128,7 @@ async function PedidosRca(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- geraCredito618');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
@@ -1250,7 +1140,7 @@ async function PedidosRca(parameter,req, res){
     //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -1259,13 +1149,13 @@ async function PedidosRca(parameter,req, res){
         console.log('CONECTADO NO BANCO - UpdatePixBaixa');
         if(parametro.txid!=null  && parametro.valor!=null){
           console.log(parametro)
-          result_update_baixa_pix = await connection.execute(`
+          var result_update_baixa_pix = await connection.execute(`
           UPDATE PIX P SET P.STATUS=:1, P.DTBAIXA=:2, P.CODFUNCBAIXA=:3, P.VLPIXBAIXA=:4,P.IDPAGPIX=:5 WHERE P.TXID=:6`,
             [parametro.status,parametro.dthrpagpix,parametro.matricula,parametro.valor,parametro.idpagpix,parametro.txid]
             ,{autoCommit: true});
-          if (result.affectedRows == 0) {
+          if (result_update_baixa_pix.affectedRows == 0) {
             
-            console.log('NENHUM PIX ATUALIZADO! - ' + result);
+            console.log('NENHUM PIX ATUALIZADO! - ' + result_update_baixa_pix);
           } else {
             console.log('PIX ATUALIZADO COM SUCESSO')
             console.log(result_update_baixa_pix)
@@ -1276,7 +1166,7 @@ async function PedidosRca(parameter,req, res){
           return res.send(result_update_baixa_pix)
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - UpdatePixBaixa');
       return  res.send(err);
@@ -1286,7 +1176,7 @@ async function PedidosRca(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - UpdatePixBaixa');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' UpdatePixBaixa');
         }
       }
@@ -1296,13 +1186,13 @@ async function PedidosRca(parameter,req, res){
   //UPDATE PCESTCR - TESTE
   async function UpdateEstcr(parametro,req, res) {
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
         console.log('CONECTADO NO BANCO - UPDATE ESTCR');
-          update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (3846498.04) WHERE CODCOB = 'D' AND CODBANCO = 1",[],{autoCommit: true});
+          let update_value_estcr = await connection.execute("UPDATE PCESTCR SET VALOR = (3846498.04) WHERE CODCOB = 'D' AND CODBANCO = 1",[],{autoCommit: true});
           if (update_value_estcr.affectedRows == 0) {
             console.log('NENHUM REGISTRO ATUALIZADO' + update_value_estcr);
           } else {
@@ -1310,7 +1200,7 @@ async function PedidosRca(parameter,req, res){
             return res.send(update_value_estcr)
           }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - UPDATE ESTCR ERROR');
       return  res.send(err.message) 
@@ -1320,7 +1210,7 @@ async function PedidosRca(parameter,req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - UPDATE ESTCR');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' UPDATE ESTCR');
         }
       }
@@ -1331,14 +1221,14 @@ async function PedidosRca(parameter,req, res){
   //GET DUPLICATAS EM ABERTO - GERACAO DE PIX
 async function DuplicatasAbertas(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
     console.log('CONCETADO NO BANCO! -- GET DUPLIC EM ABERTO');
     // run query to get all employees
-    result = await connection.execute(
+    let result = await connection.execute(
     `SELECT P.CODFILIAL,P.DUPLIC,P.PREST,P.NUMPED,P.VALOR,P.CODCLI,C.CLIENTE,P.DTVENC
     ,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT
     ,CASE WHEN P.DTVENC<SYSDATE THEN ((2*p.valor)/100) ELSE 0 END AS VALOR_MULTA
@@ -1382,7 +1272,7 @@ async function DuplicatasAbertas(parameter,req, res){
       //console.log(after_session)
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -1391,7 +1281,7 @@ async function DuplicatasAbertas(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC EM ABERTO');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -1401,7 +1291,7 @@ async function DuplicatasAbertas(parameter,req, res){
 //GET CLIENTE WINTHOR POR ID
 async function getClienteId(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
@@ -1409,7 +1299,7 @@ async function getClienteId(parameter,req, res){
 
     console.log('CONCETADO NO BANCO! -- GET CLIENTE ID');
     // run query to get all employees
-    result = await connection.execute("SELECT * FROM PCCLIENT C WHERE C.CODCLI=:1",[parameter.id]);
+    let result = await connection.execute("SELECT * FROM PCCLIENT C WHERE C.CODCLI=:1",[parameter.id]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET CLIENTE ID');
@@ -1425,7 +1315,7 @@ async function getClienteId(parameter,req, res){
       console.log(doubles[0])
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -1434,7 +1324,7 @@ async function getClienteId(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -1445,11 +1335,11 @@ async function getClienteId(parameter,req, res){
 async function getClienteNome(parameter,req, res){
   let connection;
   try {
-    connection = await oracledb.getConnection('appspool');
+    connection = await oracledb_Functions.getConnection('appspool');
     if(parameter.nome.length>'6'){
     console.log('CONCETADO NO BANCO! -- GET CLIENTE NOME ' + parameter.nome);
     // run query to get all employees
-    result = await connection.execute(`SELECT C.CODCLI,C.CLIENTE,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE AS EMAILNFE FROM PCCLIENT C WHERE C.CLIENTE LIKE UPPER(:1) `,[parameter.nome]);
+    var result = await connection.execute(`SELECT C.CODCLI,C.CLIENTE,REPLACE(REPLACE(REPLACE(C.CGCENT,'.',''),'/',''),'-','') AS CGCENT,C.EMAILNFE AS EMAILNFE FROM PCCLIENT C WHERE C.CLIENTE LIKE UPPER(:1) `,[parameter.nome]);
     }else{
       console.log('DIGITE MAIS CARACTERES')
     }
@@ -1469,7 +1359,7 @@ async function getClienteNome(parameter,req, res){
       return res.send(doubles);
     }
   
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -1478,7 +1368,7 @@ async function getClienteNome(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET CLIENTE NOME');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -1488,11 +1378,11 @@ async function getClienteNome(parameter,req, res){
 //GET CLIENTE WINTHOR POR CODCLI
 async function getClientes(req, res){
   try {
-    const connection = await oracledb.getConnection('appspool');
+    var connection = await oracledb_Functions.getConnection('appspool');
 
     console.log('CONCETADO NO BANCO! -- GET CLIENTE');
     // run query to get all employees
-    result = await connection.execute("SELECT C.CODCLI,C.CLIENTE,C.CGCENT FROM PCCLIENT C WHERE C.DTEXCLUSAO IS NULL",[]);
+    let result = await connection.execute("SELECT C.CODCLI,C.CLIENTE,C.CGCENT FROM PCCLIENT C WHERE C.DTEXCLUSAO IS NULL",[]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET CLIENTE');
@@ -1527,14 +1417,14 @@ async function getClientes(req, res){
 //GET PIX WINTHOR - TABLEPIX
 async function getPixWinthor(parameter,req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
     console.log('CONCETADO NO BANCO! -- GET PIX WINTHOR');
     // run query to get all employees
-    result = await connection.execute(
+    let result = await connection.execute(
     ``,[parameter.codfilial]);
     if (result.rows.length == 0) {
       //query return zero employees
@@ -1562,7 +1452,7 @@ async function getPixWinthor(parameter,req, res){
       //console.log(after_session)
       return res.send(doubles);
     }
-  } catch (err) {
+  } catch (err:any) {
     //send error message
     return res.send(err.message);
   } finally {
@@ -1571,7 +1461,7 @@ async function getPixWinthor(parameter,req, res){
         // Always close connections
         await connection.close();
         console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET PIX WINTHOR');
-      } catch (err) {
+      } catch (err:any) {
         console.error(err.message);
       }
     }
@@ -1585,7 +1475,7 @@ function DisparoEmail(config,parametro,req,res){
   if(renegociado){
     renegociado=parametro.duplicatas.map(dup => `Duplicata: ${dup.duplicata} \r\nPrestacao: ${dup.prest}\r\nValor:${dup.valor}\r\nValor Total Juros/Multa:${dup.vltotaljurosmora}\r\n`).join()
   }else{
-    renegociado='NADA RENEGOCIADO'
+    let renegociado='NADA RENEGOCIADO'
   }
   
   console.log(parametro.duplicatas)
@@ -1837,13 +1727,13 @@ transporter.sendMail(mailOptions, function(error, info){
   async function LiberaPedido(parametro,req, res) {
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
         console.log('CONECTADO NO BANCO - LIBERA PEDIDO ');
-        result_posicao_pedido=await connection.execute(`SELECT P.POSICAO FROM PCPEDC P WHERE P.NUMPED=:1`,[parametro.numped]);
+        let result_posicao_pedido=await connection.execute(`SELECT P.POSICAO FROM PCPEDC P WHERE P.NUMPED=:1`,[parametro.numped]);
         
         console.log(result_posicao_pedido.rows.length)
         //send all employees
@@ -1855,11 +1745,11 @@ transporter.sendMail(mailOptions, function(error, info){
         if(result_posicao_pedido.rows.length>0){
           if(doubles[0].posicao=='B' || doubles[0].posicao=='P'){
             console.log(parametro)
-            result_update_pedido = await connection.execute(`UPDATE PCPEDC P SET P.POSICAO='L',P.DTLIBERA=SYSDATE,P.CODFUNCLIBERA=5555, P.OBS='PAGAMENTO VIA PIX' WHERE P.NUMPED=:1`,
+            let result_update_pedido = await connection.execute(`UPDATE PCPEDC P SET P.POSICAO='L',P.DTLIBERA=SYSDATE,P.CODFUNCLIBERA=5555, P.OBS='PAGAMENTO VIA PIX' WHERE P.NUMPED=:1`,
             [parametro.numped]
             ,{autoCommit: true});
 
-            result_update_pedidoi = await connection.execute(`UPDATE PCPEDI I SET I.POSICAO='L' WHERE I.NUMPED=:1`,
+            let result_update_pedidoi = await connection.execute(`UPDATE PCPEDI I SET I.POSICAO='L' WHERE I.NUMPED=:1`,
             [parametro.numped]
             ,{autoCommit: true});
             
@@ -1879,7 +1769,7 @@ transporter.sendMail(mailOptions, function(error, info){
           //return res.send(result_update_pedido)
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - LIBERA PEDIDO ');
       return  res.send(err);
@@ -1889,7 +1779,7 @@ transporter.sendMail(mailOptions, function(error, info){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - LIBERA PEDIDO ');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' LIBERA PEDIDO ');
         }
       }
@@ -1924,7 +1814,8 @@ transporter.sendMail(mailOptions, function(error, info){
 // All the rows of the CSV will be
 // converted to JSON objects which
 // will be added to result in an array
-let result = [];
+//let result = [];
+var result : any[] = []
  
 // The array[0] contains all the
 // header columns so we store them
@@ -1935,7 +1826,9 @@ let headers_split = headers.toString().split(";")
 
 for (let i = 1; i < array.length - 1; i++) {
   let row_split = array[i].toString().split(";")
-  let obj = {}
+  var obj : any[] = []
+  
+
 
   //console.log(row_split)
   
@@ -1958,10 +1851,10 @@ let json2 = JSON.stringify(array[2]);
       res.status(200)
       console.log("CONEXAO COM O MILVUS FECHADA COM SUCESSO -- GET MILVUS ")
       
-      errorData=null;
+      let errorData=null;
           }).catch(error => {
             console.log("CONEXAO FECHADA -- GET MILVUS")
-            errorData=error
+            let errorData=error
             console.log('ERROR:' + error)
         });      
   }
@@ -1972,7 +1865,7 @@ let json2 = JSON.stringify(array[2]);
     //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -1981,7 +1874,7 @@ let json2 = JSON.stringify(array[2]);
         console.log('CONECTADO NO BANCO - INSERT PIX TOKEN');
         if(parametro.token!=null  && parametro.dthrexpiration!=null){
           //console.log(parametro)
-          result = await connection.execute(`INSERT INTO PIXTOKEN(PIXTOKENID,BANCO,TOKEN,STATUS,DTHREXPIRATIONPIXTOKEN_APP,TOKEN_TYPE) 
+          let result = await connection.execute(`INSERT INTO PIXTOKEN(PIXTOKENID,BANCO,TOKEN,STATUS,DTHREXPIRATIONPIXTOKEN_APP,TOKEN_TYPE) 
             VALUES ( (SELECT (MAX(P.PIXTOKENID)+1) FROM PIXTOKEN P),'237',:1,'A',:2,:3)`,
             [parametro.token,parametro.dthrexpiration,parametro.token_type]
             ,{autoCommit: true});
@@ -1997,7 +1890,7 @@ let json2 = JSON.stringify(array[2]);
           //return res.status(400).send(result)
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - INSERT PIX TOKEN');
       //return  res.send(err) 
@@ -2007,7 +1900,7 @@ let json2 = JSON.stringify(array[2]);
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - INSERT PIX TOKEN');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' INSERT PIX TOKEN');
         }
       }
@@ -2020,7 +1913,7 @@ let json2 = JSON.stringify(array[2]);
     console.log('PARAMETRO: ' + parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -2029,7 +1922,7 @@ let json2 = JSON.stringify(array[2]);
         console.log('CONECTADO NO BANCO - UpdatePixTokenStatus');
         if(parametro!=null){
           //console.log(parametro)
-          result = await connection.execute(`UPDATE PIXTOKEN P SET P.STATUS='I' WHERE P.PIXTOKENID=:1`,
+         let result = await connection.execute(`UPDATE PIXTOKEN P SET P.STATUS='I' WHERE P.PIXTOKENID=:1`,
             [parametro]
             ,{autoCommit: true});
           if (result.affectedRows == 0) {
@@ -2044,7 +1937,7 @@ let json2 = JSON.stringify(array[2]);
           //return res.status(400).send(result)
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - UpdatePixTokenStatus');
       //return  res.send(err) 
@@ -2054,7 +1947,7 @@ let json2 = JSON.stringify(array[2]);
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - UpdatePixTokenStatus');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' UpdatePixTokenStatus');
         }
       }
@@ -2064,14 +1957,14 @@ let json2 = JSON.stringify(array[2]);
   //GET PIX TOKEN WINTHOR -- VALIDA TOKEN
 async function getPixToken(req, res){
   try {
-    connection = await oracledb.getConnection({
+    var connection = await oracledb_Functions.getConnection({
       user: process.env.USERNAME,
       password: process.env.PASSWORD,
       connectString: process.env.CONNECTSTRING
     });
     console.log('CONCETADO NO BANCO! -- GET PIX TOKEN');
     // run query to get all employees
-    result = await connection.execute("SELECT P.PIXTOKENID,P.DTHREXPIRATIONPIXTOKEN,SYSDATE,((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440) AS TEMPO_RESTANTE_TOKEN,CASE WHEN ((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440)>0 THEN 'TOKEN VALIDO' ELSE 'TOKEN INVALIDO' END AS VALIDA_TOKEN,P.TOKEN,P.token_type FROM PIXTOKEN P WHERE P.PIXTOKENID=(SELECT MAX(PT.PIXTOKENID) FROM PIXTOKEN PT ) ORDER BY PIXTOKENID",[]);
+    let result = await connection.execute("SELECT P.PIXTOKENID,P.DTHREXPIRATIONPIXTOKEN,SYSDATE,((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440) AS TEMPO_RESTANTE_TOKEN,CASE WHEN ((P.DTHREXPIRATIONPIXTOKEN-SYSDATE)*1440)>0 THEN 'TOKEN VALIDO' ELSE 'TOKEN INVALIDO' END AS VALIDA_TOKEN,P.TOKEN,P.token_type FROM PIXTOKEN P WHERE P.PIXTOKENID=(SELECT MAX(PT.PIXTOKENID) FROM PIXTOKEN PT ) ORDER BY PIXTOKENID",[]);
     if (result.rows.length == 0) {
       //query return zero employees
       return res.send('NENHUM REGISTRO ENCONTRADO -- GET PIX TOKEN');
@@ -2115,7 +2008,7 @@ async function getPixToken(req, res){
     //console.log(parametro)
     let dtexpiracao = new Date().toLocaleString('pt-BR')
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_Functions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
@@ -2124,7 +2017,7 @@ async function getPixToken(req, res){
         console.log('CONECTADO NO BANCO - INSERT PIX NOTIFICATION');
         if(pix.endToEndId!=null  && pix.txid!=null){
           //console.log(parametro)
-          result = await connection.execute(`INSERT INTO PIXNOTIFICATIONS 
+          var result = await connection.execute(`INSERT INTO PIXNOTIFICATIONS 
           (PIXNOTIFICATIONSID,BANCO,STATUS,ENDTOENDID,TXID,VALORPAGO,DTHRPAG,OBSPAGADOR) 
           VALUES 
           ((SELECT (MAX(PN.PIXNOTIFICATIONSID)+1) FROM PIXNOTIFICATIONS PN),:1,:2,:3,:4,:5,:6,:7)`,
@@ -2144,7 +2037,7 @@ async function getPixToken(req, res){
           return res.status(400).send(result) 
         }
                    
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       console.error(err.message + ' - INSERT PIX NOTIFICATION');
       return  res.send(err) 
@@ -2154,7 +2047,7 @@ async function getPixToken(req, res){
           // Always close connections
           await connection.close();
           console.log('CONEXAO FECHADA COM SUCESSO! - INSERT PIX NOTIFICATION');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message + ' INSERT PIX NOTIFICATION');
         }
       }

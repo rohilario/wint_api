@@ -1,5 +1,4 @@
 const expressPrecificacao = require('express');
-const { PedidosFrenteLojaVendedorBalcao } = require('../services/functions');
 const PrecificacaoRoutes = expressPrecificacao.Router();  
 const helpers=require('../services/PrecificacaoFunctions')
 

@@ -1,21 +1,16 @@
-const oracledb = require('oracledb');
-const fs = require('fs');
-const path = require('path');
-const nodemailer = require('nodemailer');
-const axios = require('axios');
-
+const oracledb_ClientesFunctions = require('oracledb');
 
   //GET DUPLICATAS EM ABERTO RCA - GERACAO DE PIX
   async function getClienteRca(req, res, params){
     try {
-      connection = await oracledb.getConnection({
+      var connection = await oracledb_ClientesFunctions.getConnection({
         user: process.env.USERNAME,
         password: process.env.PASSWORD,
         connectString: process.env.CONNECTSTRING
       });
       console.log('CONCETADO NO BANCO! -- GET DUPLIC RCA');
       // run query to get all employees
-      result = await connection.execute(
+      const result = await connection.execute(
       `SELECT C.CODCLI,C.CLIENTE,C.CODCLI||' - '||C.CLIENTE AS NOME_COMPLETO,C.CGCENT,C.EMAILNFE AS EMAILCLIENTE,U.EMAIL AS EMAILRCA
       FROM PCCLIENT C, PCUSUARI U WHERE C.CODUSUR1=U.CODUSUR AND C.DTEXCLUSAO IS NULL AND C.CODUSUR1=:1 AND C.CODCLI=:2`,[params.codrca,params.codcli]);
       if (result.rows.length == 0) {
@@ -40,7 +35,7 @@ const axios = require('axios');
         //console.log(after_session)
         return res.send(doubles);
       }
-    } catch (err) {
+    } catch (err:any) {
       //send error message
       return res.send(err.message);
     } finally {
@@ -49,15 +44,12 @@ const axios = require('axios');
           // Always close connections
           await connection.close();
           console.log('CONEXAO COM O BANCO FECHADA COM SUCESSO -- GET DUPLIC RCA');
-        } catch (err) {
+        } catch (err:any) {
           console.error(err.message);
         }
       }
     }
   }
-
-
-
   module.exports={
     getClienteRca:getClienteRca,
   }

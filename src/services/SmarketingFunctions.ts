@@ -1,11 +1,5 @@
-const oracledb = require('oracledb');
-const fs = require('fs');
-const path = require('path');
-const nodemailer = require('nodemailer');
-const axios = require('axios');
+const fs_Smarketing = require('fs');
 const json2csv =   require('json2csv');
-var EasyFtp = require('easy-ftp');
-//var PromiseFtp = require('promise-ftp');
 const ftp = require("basic-ftp");
 const conn = require('../config/connection');
 //const connection = require('../config/connection');
@@ -14,7 +8,7 @@ async function ConnectFtp(req,res,origem,destino,msg) {
   const client = new ftp.Client()
   client.ftp.verbose = true
   try {
-     conn_ftp= await client.access({
+    var conn_ftp= await client.access({
           host: "ftp.smarketsolutions.com.br",
           user: "rofedistribuidora",
           password: "NTdlNDEyNGM4OGFl",
@@ -48,11 +42,11 @@ async function ConnectFtp(req,res,origem,destino,msg) {
 //GET SEGMENTOS FROM DUAL
 async function getSegmentos(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       //console.log(connection)
       console.log('CONCETADO NO BANCO! -- GET SEGMENTOS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT '1' AS SEQSEGMENTO, 'DISTRIBUIDORA DE MATERIAL DE CONSTRUCAO' AS SEGMENTO FROM DUAL`);
+      const result = await connection.execute(`SELECT '1' AS SEQSEGMENTO, 'DISTRIBUIDORA DE MATERIAL DE CONSTRUCAO' AS SEGMENTO FROM DUAL`);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO -- GET SEGMENTOS - SMARKETING INTEGRATION');
@@ -61,8 +55,8 @@ async function getSegmentos(req, res){
         const doubles = result.rows.map(function(newsql) {
             return {seqsegmento:newsql[0],segmento:newsql[1]}
         })
-        now = new Date().getTime()
-            nowdate = new Date(now)
+        let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='segmento-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
@@ -70,7 +64,7 @@ async function getSegmentos(req, res){
         try {
             if(csv){
                 //console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -130,10 +124,10 @@ async function getSegmentos(req, res){
 //GET LOJAS - REGIOES WINTHOR
 async function getLojas(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET LOJAS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT R.NUMREGIAO AS SEQLOJA,1 AS SEQSEGMENTO,
+      let result = await connection.execute(`SELECT R.NUMREGIAO AS SEQLOJA,1 AS SEQSEGMENTO,
       CASE WHEN F.CODIGO=99 THEN '6' ELSE F.CODIGO END  || ' - ' || CASE WHEN F.CODIGO=99 THEN 'COMERCIAL ROFE LTDA (F-PI)' ELSE F.RAZAOSOCIAL END || ' - ' || R.REGIAO AS LOJA
       ,'0' AS CD,'' AS BANDEIRA,'1' AS STATUS, F.ENDERECO AS LOGRADOURO,F.NUMERO,F.COMPLEMENTOENDERECO
       ,F.BAIRRO,F.CIDADE,F.UF AS ESTADO,'BRASIL' AS PAIS,REPLACE(REPLACE(F.CEP,'-',''),'.','') AS CEP,F.RAZAOSOCIAL AS RAZAO_SOCIAL,F.CGC AS CNPJ
@@ -164,8 +158,8 @@ async function getLojas(req, res){
                     cnpj:newsql[15]
             }
         })
-        now = new Date().getTime()
-            nowdate = new Date(now)
+        let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='loja-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
@@ -173,7 +167,7 @@ async function getLojas(req, res){
         try {
             if(csv){
                 //console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -230,10 +224,10 @@ async function getLojas(req, res){
 
   async function getCategoria(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET CATEGORIAS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT D.CODEPTO AS SEQCATEGORIA,'' AS SEQCATEGORIA_PAI, D.DESCRICAO AS CATEGORIA FROM PCDEPTO D --WHERE D.CODEPTO=10011`);
+      let result = await connection.execute(`SELECT D.CODEPTO AS SEQCATEGORIA,'' AS SEQCATEGORIA_PAI, D.DESCRICAO AS CATEGORIA FROM PCDEPTO D --WHERE D.CODEPTO=10011`);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO -- GET CATEGORIAS - SMARKETING INTEGRATION');
@@ -248,14 +242,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='categoria-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -314,10 +308,10 @@ async function getLojas(req, res){
   }
   async function getFornecedor(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET FORNECEDOR - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT F.CODFORNEC AS SEQFORNECEDOR
+      let result = await connection.execute(`SELECT F.CODFORNEC AS SEQFORNECEDOR
       ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(F.FORNECEDOR,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS FORNECEDOR
       ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(F.ENDER,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS LOGRADOURO
       ,TRANSLATE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(F.NUMEROEND,'.',''),'|',''),'/',''),'*',''),';',''),CHR(10)),CHR(13)),CHR(9)),'ŠŽšžŸÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ','SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy') AS NUMERO
@@ -355,14 +349,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='fornecedor-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -416,10 +410,10 @@ async function getLojas(req, res){
 
   async function getProdutos(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTO DESCRICAO - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(
+      let result = await connection.execute(
         `
         SELECT P.CODPROD AS SEQPRODUTO, P.CODEPTO AS SEQCATEGORIA,'' AS SEQFAMILIA
         ,'' AS SEQSIMILARIDADE, P.CODFORNEC AS SEQFORNECEDOR
@@ -453,14 +447,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='produto_descricao-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -517,10 +511,10 @@ async function getLojas(req, res){
 
   async function getProdutoPreco(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS PRECOS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA,ROUND(T.PVENDA2,2) AS PRECO_NORMAL
+      let result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA,ROUND(T.PVENDA2,2) AS PRECO_NORMAL
       , '' AS PRECO_PROMOCAO, '' AS PRECO_FIDELIDADE, '' AS PRECO_ATACADO
       ,(SELECT MAX(M.PUNIT) FROM PCMOV M WHERE M.CODPROD=P.CODPROD AND M.CODOPER='E') AS CUSTO_LIQUIDO
       ,(SELECT TB.CODICM FROM PCTABTRIB TT,PCTRIBUT TB WHERE TB.CODST=TT.CODST AND TT.CODPROD=P.CODPROD AND TT.CODFILIALNF=CASE WHEN R.CODFILIAL=99 THEN TO_CHAR(6) ELSE R.CODFILIAL END AND TT.UFDESTINO=R.UF) AS ALIQUOTA
@@ -551,14 +545,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='produto_preco-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -611,10 +605,10 @@ async function getLojas(req, res){
 
   async function getProdutoEstoque(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS ESTOQUE - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA
+      let result = await connection.execute(`SELECT T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA
       ,(SELECT CASE WHEN EE.QTEST IS NULL THEN 0 ELSE EE.QTEST END FROM PCEST EE WHERE EE.CODPROD=P.CODPROD AND EE.CODFILIAL= CASE WHEN R.CODFILIAL=99 THEN '1' ELSE R.CODFILIAL END) AS ESTOQUE
       ,(SELECT EE.QTPENDENTE FROM PCEST EE WHERE EE.CODPROD=P.CODPROD AND EE.CODFILIAL= CASE WHEN R.CODFILIAL=99 THEN '1' ELSE R.CODFILIAL END) AS ESTOQUE_PENDENTE
       ,0 AS MEDIA_VENDA_DIARIA
@@ -637,14 +631,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='produto_estoque-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -697,10 +691,10 @@ async function getLojas(req, res){
 
   async function getProdutoAtivo(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS ATIVOS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT --R.NUMREGIAO,COUNT(*)
+      let result = await connection.execute(`SELECT --R.NUMREGIAO,COUNT(*)
       T.CODPROD AS SEQPRODUTO,R.NUMREGIAO AS SEQLOJA,CASE WHEN P.REVENDA='S' THEN 1 ELSE 0 END AS ATIVO
       FROM PCTABPR T, PCREGIAO R, PCFILIAL F, PCPRODUT P, PCPRODFILIAL PF, PCEST E WHERE P.CODPROD=PF.CODPROD 
       AND E.CODFILIAL=CASE WHEN R.CODFILIAL=99 THEN '1' ELSE R.CODFILIAL END AND E.CODPROD=P.CODPROD 
@@ -722,14 +716,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='produto_ativo-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -782,10 +776,10 @@ async function getLojas(req, res){
 
   async function getProdutoEAN(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET PRODUTOS EAN - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(`SELECT P.CODPROD AS SEQPRODUTO,CASE WHEN P.CODAUXILIAR IS NULL THEN 0 ELSE P.CODAUXILIAR END AS EAN,'1' AS PRINCIPAL FROM PCPRODUT P WHERE P.DTEXCLUSAO IS NULL --AND P.OBS='N'`);
+      let result = await connection.execute(`SELECT P.CODPROD AS SEQPRODUTO,CASE WHEN P.CODAUXILIAR IS NULL THEN 0 ELSE P.CODAUXILIAR END AS EAN,'1' AS PRINCIPAL FROM PCPRODUT P WHERE P.DTEXCLUSAO IS NULL --AND P.OBS='N'`);
       if (result.rows.length == 0) {
         //query return zero employees
         return res.send('NENHUM REGISTRO ENCONTRADO -- GET PRODUTOS EAN - SMARKETING INTEGRATION');
@@ -800,14 +794,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='produto_ean-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -860,10 +854,10 @@ async function getLojas(req, res){
 
   async function getCupom(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET CUPOM - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(
+      let result = await connection.execute(
       `SELECT I.DATA AS DT_VENDA,I.CODPROD AS SEQPRODUTO,P.CODFILIAL AS SEQLOJA, I.NUMPED AS SEQCUPOM, I.CODCLI AS SEQCLI,SUM(I.QT) AS QUANTIDADE
       ,I.PVENDA AS PRECO_UNITARIO,I.PVENDA AS CUSTO_UNITARIO, I.PERDESC AS DESCONTO_UNITARIO, '0' AS FLAG_OFERTA
       FROM PCPEDI I, PCPEDC P 
@@ -891,14 +885,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='cupom-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {
@@ -951,10 +945,10 @@ async function getLojas(req, res){
 
   async function getMetas(req, res){
     try {
-      const connection = await conn.GetConnection();
+      var connection = await conn.GetConnection();
       console.log('CONCETADO NO BANCO! -- GET METAS - SMARKETING INTEGRATION');
       // run query to get all employees
-      result = await connection.execute(
+      let result = await connection.execute(
         `
         SELECT D.CODEPTO AS SEQCATEGORIA, 20 AS META, 0 AS COMPETITIVIDADE, 'ENCARTE' AS MIDIA FROM  PCDEPTO D
 
@@ -974,14 +968,14 @@ async function getLojas(req, res){
         })
 
         try {
-            now = new Date().getTime()
-            nowdate = new Date(now)
+            let now = new Date().getTime()
+            let nowdate = new Date(now)
             const csv = json2csv.parse(doubles,{ delimiter: '|', quote: '' });
             const filename='meta_categoria-'+nowdate.toLocaleString("af")+'.csv';
             const filenamefmt=filename.replace(/\:|\/|\s/g, '-')
             if(csv){
                 console.log(filenamefmt)
-                fs.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
+                fs_Smarketing.writeFile('/var/www/html/wint_api/src/upload/'+filenamefmt, csv, 'utf8', function(err) {
                     if (err) {
                       console.log('ERRO AO SALVAR O ARQUIVO ' + filenamefmt);
                     } else {

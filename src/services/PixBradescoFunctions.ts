@@ -1,22 +1,21 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+const fs_PixBradescoFunctions = require('fs');
+const axiosPixBradescoFunctions = require('axios');
 const https = require('https');
 const qs = require('qs');
 const jwt_decode = require('jwt-decode');
-const functions=require('../services/functions')
+const pixBradescoFunctions=require('../services/functions')
 
 
-let file=fs.readFileSync(process.env.CD_FILE_F1)
+let file=fs_PixBradescoFunctions.readFileSync(process.env.CD_FILE_F1)
 const grant_type = { 'grant_type': 'client_credentials' };
-data= qs.stringify(grant_type)
+const data= qs.stringify(grant_type)
 
 async function getPixDate(req, res){
 
 }
 
 async function GetTokenBradesco(req,res){
-    const token=await functions.getPixToken();
+    const token=await pixBradescoFunctions.getPixToken();
     //console.log(token.TOKEN);
     if(token.status==='TOKEN VALIDO'){
         console.log('TOKEN VALIDO - TOKEN NAO SERA RENOVADO')
@@ -24,11 +23,11 @@ async function GetTokenBradesco(req,res){
     }else{
         console.log('TOKEN INVALIDO, RENOVANDO TOKEN...')
         //console.log(token.PIXTOKENID)
-        functions.UpdatePixTokenStatus(token.pixtokenid)
-        const instance = axios.create({
+        pixBradescoFunctions.UpdatePixTokenStatus(token.pixtokenid)
+        const instance = axiosPixBradescoFunctions.create({
             httpsAgent: new https.Agent({
-                //cert: fs.readFileSync(`user.cert`),
-                //key: fs.readFileSync(`user.key`),
+                //cert: fs_PixBradescoFunctions.readFileSync(`user.cert`),
+                //key: fs_PixBradescoFunctions.readFileSync(`user.key`),
                 pfx:file,
                 passphrase: process.env.PASSPHRASE_CD_F1
             }),
@@ -74,7 +73,7 @@ async function GetTokenBradesco(req,res){
     const tokenobj={"token":token,
                     "dthrexpiration":text,
                 "token_type":token_type}
-    functions.InsertPixToken(tokenobj)
+    pixBradescoFunctions.InsertPixToken(tokenobj)
     res.send(tokenbradesco)        
     }).catch(error => {
         console.log('ERRO AO OBTER O TOKEN BRADESCO!')
@@ -86,10 +85,10 @@ async function GetTokenBradesco(req,res){
 
 async function RegistraPix(req,res,params,authorization){
     console.log(params)
-    const instance2 = axios.create({
+    const instance2 = axiosPixBradescoFunctions.create({
         httpsAgent: new https.Agent({
-            //cert: fs.readFileSync(`user.cert`),
-            //key: fs.readFileSync(`user.key`),
+            //cert: fs_PixBradescoFunctions.readFileSync(`user.cert`),
+            //key: fs_PixBradescoFunctions.readFileSync(`user.key`),
             pfx:file,
             passphrase: process.env.PASSPHRASE_CD_F1
         }),
@@ -116,10 +115,10 @@ async function RegistraPix(req,res,params,authorization){
 
 async function getPagamentoPixId(req,res,authorization,txid){
     //console.log(params)
-    const instance2 = axios.create({
+    const instance2 = axiosPixBradescoFunctions.create({
         httpsAgent: new https.Agent({
-            //cert: fs.readFileSync(`user.cert`),
-            //key: fs.readFileSync(`user.key`),
+            //cert: fs_PixBradescoFunctions.readFileSync(`user.cert`),
+            //key: fs_PixBradescoFunctions.readFileSync(`user.key`),
             pfx:file,
             passphrase: process.env.PASSPHRASE_CD_F1
         }),
@@ -146,10 +145,10 @@ async function getPagamentoPixId(req,res,authorization,txid){
 //Cadastro Webhook Bradesco
 async function InsertWebhookPix(req,res,key,authorization){
     //console.log(params)
-    const instance2 = axios.create({
+    const instance2 = axiosPixBradescoFunctions.create({
         httpsAgent: new https.Agent({
-            //cert: fs.readFileSync(`user.cert`),
-            //key: fs.readFileSync(`user.key`),
+            //cert: fs_PixBradescoFunctions.readFileSync(`user.cert`),
+            //key: fs_PixBradescoFunctions.readFileSync(`user.key`),
             pfx:file,
             passphrase: process.env.PASSPHRASE_CD_F1
         }),
