@@ -33,4 +33,5 @@ const AppDataSource=require("../config/data-source");
         console.log(users)
       })
 
-module.exports=ClienteRouter;
+//module.exports=ClienteRouter;
+export default ClienteRouter

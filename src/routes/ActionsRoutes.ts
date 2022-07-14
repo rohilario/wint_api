@@ -69,4 +69,5 @@ ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
 
 
         
-module.exports=ActionRouter
+//module.exports=ActionRouter
+export default ActionRouter

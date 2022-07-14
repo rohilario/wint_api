@@ -21,4 +21,5 @@ CreditoRouter.post('/listar/codcli/:codcli/', function (req,res) {
 
 
         
-module.exports=CreditoRouter
+//module.exports=CreditoRouter
+export default CreditoRouter

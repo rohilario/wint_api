@@ -48,4 +48,5 @@ ImagesRouter.get('/produto/:productfolder/:codprod', async function (req, res, n
 
 });
 
-module.exports=ImagesRouter
+//module.exports=ImagesRouter
+export default ImagesRouter

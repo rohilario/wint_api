@@ -70,10 +70,17 @@ function verifyJWT(req, res, next){
     });
 }
 
-module.exports={
+/*module.exports={
     verifyJWT:verifyJWT,
     CreateJWT:CreateJWT,
     validUser:validUser,
     validUserRCA:validUserRCA
+}*/
+
+export default {
+  verifyJWT:verifyJWT,
+  CreateJWT:CreateJWT,
+  validUser:validUser,
+  validUserRCA:validUserRCA
 }
 

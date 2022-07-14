@@ -90,4 +90,5 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
       
     
 
-module.exports=DuplicatasRouter;
+//module.exports=DuplicatasRouter;
+export default DuplicatasRouter

@@ -62,4 +62,5 @@ SmarketingRouter.get('/metas', function (req,res) {
 
 
         
-module.exports=SmarketingRouter
+//module.exports=SmarketingRouter
+export default SmarketingRouter

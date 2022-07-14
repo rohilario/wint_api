@@ -1,38 +1,40 @@
 import express, { Express, Request, Response } from 'express';
 //const app = express();
-const bodyParser = require('body-parser');
+import bodyParser from 'body-parser';
 //require('dotenv/config');
 require('dotenv').config({path: process.env.NODE_ENV === "test" ? ".env.test" : ".env"})
 //const oracledb = require('oracledb');
-const fileUpload = require('express-fileupload');
+import fileUpload from 'express-fileupload';
 const port = process.env.PORT;
-const swaggerUi = require('swagger-ui-express');
-const connection = require('./config/connection.js');
+import swaggerUi from 'swagger-ui-express';
+
+import connection from './config/connection';
 import AppDataSource  from "./config/data-source"
 import "reflect-metadata"
-const swaggerFile = require('./swagger/swagger_output.json');
-const JWT = require('./services/auth')
+const swaggerFile = require('../swagger_output');
+import JWT from './services/auth';
 const router = express.Router();
-const redis = require("redis");
-const morgan = require('morgan')
+import redis from "redis";
+import morgan from 'morgan';
 
 //IMPORTANDO ROTAS
-const LogistcRoutes = require('./routes/LogisticRoutes')
-const ResgistrationRoutes = require('./routes/RegistrationRoutes')
-const PedidosRouter = require('./routes/PedidosRoutes')
-const ImagesRouter = require('./routes/ImageRoutes')
-const PixRouter = require('./routes/PixRoutes')
-const DuplicatasRouter = require('./routes/DuplicataRoutes')
-const AuthRouter = require('./routes/AuthRoutes')
-const CreditoRouter = require('./routes/CreditoRoutes')
-const ActionRouter = require('./routes/ActionsRoutes')
-const MilvusRouter = require('./routes/MilvusRoutes')
-const SmarketingRouter = require('./routes/SmarketingRoutes')
-const PixBradescoRoutes = require('./routes/PixBradescoRoutes')
-const PrecificacaoRoutes = require('./routes/PrecificacaoRoutes')
-const ClienteRoutes = require('./routes/ClienteRoutes')
+import LogistcRoutes from './routes/LogisticRoutes';
+import ResgistrationRoutes from './routes/RegistrationRoutes';
+import PedidosRouter from './routes/PedidosRoutes';
+import ImagesRouter from './routes/ImageRoutes';
+import PixRouter from './routes/PixRoutes';
+import DuplicatasRouter from './routes/DuplicataRoutes';
+import AuthRouter from './routes/AuthRoutes';
+import CreditoRouter from './routes/CreditoRoutes';
+import ActionRouter from './routes/ActionsRoutes';
+import MilvusRouter from './routes/MilvusRoutes';
+import SmarketingRouter from './routes/SmarketingRoutes';
+import PixBradescoRoutes from './routes/PixBradescoRoutes';
+import PrecificacaoRoutes from './routes/PrecificacaoRoutes';
+import ClienteRoutes from './routes/ClienteRoutes';
 
 const app: Express = express();
+
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -63,7 +65,8 @@ app.use(function (req, res, next) {
 app.use(morgan("tiny"));
 
 //definindo as rotas
-app.use('/',JWT.verifyJWT ,router);
+
+app.use('/',router);
 app.use('/auth',AuthRouter);
 app.use('/actions',JWT.verifyJWT,ActionRouter)
 app.use('/logistica',JWT.verifyJWT, LogistcRoutes);
@@ -81,6 +84,7 @@ app.use('/clientes',JWT.verifyJWT,ClienteRoutes);
 
 //SWAGGER DOCUMENTATTION
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+
 // Resposta padrão para quaisquer outras requisições:
 app.use((req: Request, res: Response) => {
     res.status(404)

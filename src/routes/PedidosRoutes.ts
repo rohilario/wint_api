@@ -118,4 +118,4 @@ PedidosRouter.post('/liberacao/codfilial/:codfilial/:numped', function (req,res)
   
   })
 
-module.exports=PedidosRouter
+export default PedidosRouter

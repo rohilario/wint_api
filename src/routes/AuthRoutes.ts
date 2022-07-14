@@ -26,4 +26,5 @@ AuthRouter.post('/rca/token/create', function (req,res) {
 
 })
 
-module.exports=AuthRouter
+//module.exports=AuthRouter
+export default AuthRouter

@@ -15,4 +15,5 @@ MilvusRouter.get('/chamados', function (req,res) {
     }    
     })
 
-module.exports=MilvusRouter
+//module.exports=MilvusRouter
+export default MilvusRouter

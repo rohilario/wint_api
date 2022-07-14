@@ -157,4 +157,5 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
       
 
         
-module.exports=PixRouter
+//module.exports=PixRouter
+export default PixRouter

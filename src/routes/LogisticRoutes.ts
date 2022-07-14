@@ -56,4 +56,4 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
       })
       
 
-module.exports = LogisticRouter
+export default LogisticRouter

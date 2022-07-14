@@ -1,9 +1,7 @@
 "use strict";
 const swaggerAutogen = require('swagger-autogen')();
 const outputFile = './swagger_output.json';
-const endpointsFiles = ['../app.ts'];
-//./src/routes/routes.js
-//swaggerAutogen(outputFile, endpointsFiles);
+const endpointsFiles = ['./src/app.ts'];
 swaggerAutogen(outputFile, endpointsFiles).then(() => {
-    require('../app.ts'); // Your project's root file
+    require('./src/app.ts'); // Your project's root file
 });

@@ -23,7 +23,7 @@ const port = process.env.PORT;
 const swaggerUi = require('swagger-ui-express');
 const connection = require('./config/connection.js');
 require("reflect-metadata");
-const swaggerFile = require('./swagger/swagger_output.json');
+const swaggerFile = require('../swagger_output.json');
 const JWT = require('./services/auth');
 const router = express_1.default.Router();
 const redis = require("redis");
@@ -66,7 +66,7 @@ app.use(function (req, res, next) {
 //MORGAN MIDDLEWARE FOR LOGS HTTP REQUESTS
 app.use(morgan("tiny"));
 //definindo as rotas
-app.use('/', JWT.verifyJWT, router);
+app.use('/', router);
 app.use('/auth', AuthRouter);
 app.use('/actions', JWT.verifyJWT, ActionRouter);
 app.use('/logistica', JWT.verifyJWT, LogistcRoutes);

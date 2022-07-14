@@ -98,4 +98,5 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
 ;        functionsRegistration.getClientes(req, res);   
         })
 
-module.exports=RegistrationRouter
+//module.exports=RegistrationRouter
+export default RegistrationRouter

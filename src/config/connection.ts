@@ -97,4 +97,11 @@ const oracledb = require('oracledb');
     }
   }
 
-  module.exports={checkConnection:checkConnection,initOracleDbConection:initOracleDbConection,closePool:closePool,GetConnection:GetConnection}
+  /*module.exports={checkConnection:checkConnection,initOracleDbConection:initOracleDbConection,closePool:closePool,GetConnection:GetConnection}*/
+  
+  export default {
+  checkConnection:checkConnection,
+  initOracleDbConection:initOracleDbConection,
+  closePool:closePool,
+  GetConnection:GetConnection
+  }
