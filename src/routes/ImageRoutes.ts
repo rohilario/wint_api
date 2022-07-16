@@ -1,6 +1,5 @@
 const expressImages = require('express')
 const ImagesRouter = expressImages.Router();  
-const functionsImages=require('../services/functions')
 const fs = require('fs');
 const path = require('path');
 

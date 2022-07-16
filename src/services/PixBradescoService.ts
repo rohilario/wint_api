@@ -3,7 +3,7 @@ const axiosPixBradescoFunctions = require('axios');
 const https = require('https');
 const qs = require('qs');
 const jwt_decode = require('jwt-decode');
-const pixBradescoFunctions=require('../services/functions')
+const pixBradescoFunctions=require('../services/Services')
 
 
 let file=fs_PixBradescoFunctions.readFileSync(process.env.CD_FILE_F1)

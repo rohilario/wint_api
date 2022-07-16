@@ -1378,7 +1378,6 @@ async function getClienteNome(parameter,req, res){
 
 //GET CLIENTE WINTHOR POR CODCLI
 async function getClientes(req, res){
-  const key=req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
   try {
     var connection = await oracledb_Functions.getConnection('appspool');
 
@@ -1397,7 +1396,7 @@ async function getClientes(req, res){
                   cgcent:newsql[2]
           }
       })
-      cache.setChache(key,doubles)
+      cache.setChache(req,res,doubles)
       return res.send(doubles);
     }
   } catch (err) {

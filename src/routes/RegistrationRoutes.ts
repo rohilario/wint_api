@@ -1,6 +1,6 @@
 const expressRegistration = require('express')
 const RegistrationRouter = expressRegistration.Router();  
-const functionsRegistration=require('../services/functions')
+const RegistrationService=require('../services/Services')
 //const cache_registration = require('../services/cache');
 import CacheRegistration from '../middleware/cache' 
 
@@ -15,7 +15,7 @@ import CacheRegistration from '../middleware/cache'
     if(codfilial){
       //res.json(obj)
       res.status(200)
-      functionsRegistration.getFunc(obj,req, res);   
+      RegistrationService.getFunc(obj,req, res);   
     }else{ 
       res.json({"GET FUNC ERROR":matricula})
       res.status(404)
@@ -35,7 +35,7 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
     if(codprod){
       //res.json(obj)
       res.status(200)
-      functionsRegistration.getProdut(obj,req, res);   
+      RegistrationService.getProdut(obj,req, res);   
     }else{ 
       res.json({"ERROR":codprod})
       res.status(404)
@@ -56,7 +56,7 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
     if(codprod){
       //res.json(obj)
       res.status(200)
-      functionsRegistration.updateProdutQtdMasterCompra(obj,req, res);   
+      RegistrationService.updateProdutQtdMasterCompra(obj,req, res);   
     }else{ 
       res.json({"UPDATE EMBALAGEM MASTER ERROR":codprod})
       res.status(404)
@@ -73,7 +73,7 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
     if(id){
       //res.json(obj)
       //res.status(200)
-      functionsRegistration.getClienteId(obj,req, res);   
+      RegistrationService.getClienteId(obj,req, res);   
     }else{ 
       res.status(404)
     }
@@ -87,7 +87,7 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
       //res.json(obj)
       //res.status(200)
       const obj={"nome":'%'+nome+'%'}
-      functionsRegistration.getClienteNome(obj,req, res);
+      RegistrationService.getClienteNome(obj,req, res);
     }else{
       res.json({"nome":nome,"msg":"digite mais campos"})
       //res.status(404) 
@@ -96,10 +96,9 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
 
       //GET CLIENTE ATIVOS
       RegistrationRouter.get('/clientes',CacheRegistration.verifyCache, function (req,res) {   
-        console.log(req.hostname+'_'+req.baseUrl+req.route.path+'_'+req.headers['x-access-token']);
-        const key=req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
-        functionsRegistration.getClientes(req,res);   
-        //res.send(req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token'])
+        //console.log(req.hostname+'_'+req.method+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token'])
+        //const key=req.hostname+'_'+req.method+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
+        RegistrationService.getClientes(req,res);   
         })
 
 //module.exports=RegistrationRouter

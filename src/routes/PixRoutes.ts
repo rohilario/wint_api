@@ -1,6 +1,6 @@
 const expressPix = require('express')
 const PixRouter = expressPix.Router();  
-const functionsPix=require('../services/functions')
+const PixService=require('../services/Services')
 
 PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
     //const date=req.params.numped
@@ -42,7 +42,7 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
     if(obj){
       //res.status(200)
       //res.json(req.body.cpfcnpj)
-      functionsPix.InsertPix(obj,req, res); 
+      PixService.InsertPix(obj,req, res); 
       //console.log(req.body.data.cpfcnpj)  
     }else{ 
       res.status(404)
@@ -74,7 +74,7 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
       if(obj){
         //res.status(200)
         //res.json(obj)
-        functionsPix.geraCredito618(obj,req, res); 
+        PixService.geraCredito618(obj,req, res); 
         //console.log(obj)  
       }else{ 
         res.status(404)
@@ -102,7 +102,7 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
         if(obj){
           //res.status(200)
           //res.json(obj)
-          functionsPix.UpdatePixBaixa(obj,req, res); 
+          PixService.UpdatePixBaixa(obj,req, res); 
           //console.log(obj)  
         }else{ 
           res.status(404)
@@ -147,7 +147,7 @@ PixRouter.post('/numped/:numped/codfilial/:codfilial', function (req,res) {
             if(obj){
               //res.status(200)
               //res.json(obj)
-              functionsPix.UpdateEstcr(obj,req, res); 
+              PixService.UpdateEstcr(obj,req, res); 
               //console.log(obj)  
             }else{ 
               res.status(404)

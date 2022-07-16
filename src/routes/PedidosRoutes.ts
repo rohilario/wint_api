@@ -1,6 +1,6 @@
 const expressPedidos = require('express')
 const PedidosRouter = expressPedidos.Router();  
-const functionsPedidos=require('../services/functions')
+const PedidosService=require('../services/Services')
   
 // PEDIDO POR NUMPED - PEDIDOS COM FILIAIS DIVERGENTES
 PedidosRouter.post('/numped', function (req,res) {
@@ -9,7 +9,7 @@ PedidosRouter.post('/numped', function (req,res) {
     if(numped){
       //res.json(obj)
       res.status(200)
-      functionsPedidos.getPedido(obj,req, res);   
+      PedidosService.getPedido(obj,req, res);   
     }else{ 
       res.status(404)
     }
@@ -24,7 +24,7 @@ PedidosRouter.post('/numped', function (req,res) {
         if(numcar){
           //res.json(obj)
           res.status(200)
-          functionsPedidos.getNumpedFilial(obj,req, res);   
+          PedidosService.getNumpedFilial(obj,req, res);   
         }else{ 
           res.json({"ERROR":numcar})
           res.status(404)
@@ -45,7 +45,7 @@ PedidosRouter.post('/numped', function (req,res) {
     if(codfilial){
       //res.json(obj)
       res.status(200)
-      functionsPedidos.updatePedidoFilial(obj,req, res);   
+      PedidosService.updatePedidoFilial(obj,req, res);   
     }else{ 
       res.json({"UPDATE EMBALAGEM MASTER ERROR":codfilial})
       res.status(404)
@@ -62,7 +62,7 @@ PedidosRouter.get('/balcaoreserva/codfilial/:codfilial', function (req,res) {
   if(codfilial){
     //res.json(obj)
     res.status(200)
-    functionsPedidos.PedidosFrenteLoja(obj,req, res);   
+    PedidosService.PedidosFrenteLoja(obj,req, res);   
   }else{ 
     res.status(404)
   }
@@ -79,7 +79,7 @@ PedidosRouter.get('/entrega/rca/codfilial/:codfilial/codrca/:codrca', function (
   if(codfilial){
     //res.json(obj)
     res.status(200)
-    functionsPedidos.PedidosRca(obj,req, res);   
+    PedidosService.PedidosRca(obj,req, res);   
   }else{ 
     res.status(404)
   }
@@ -95,7 +95,7 @@ PedidosRouter.get('/entrega/rca/codfilial/:codfilial', function (req,res) {
   if(codfilial){
     //res.json(obj)
     res.status(200)
-    functionsPedidos.PedidosRca(obj,req, res);   
+    PedidosService.PedidosRca(obj,req, res);   
   }else{ 
     res.status(404)
   }
@@ -111,7 +111,7 @@ PedidosRouter.post('/liberacao/codfilial/:codfilial/:numped', function (req,res)
   if(codfilial){
     //res.json(obj)
     //res.status(200)
-    functionsPedidos.LiberaPedido(obj,req, res);   
+    PedidosService.LiberaPedido(obj,req, res);   
   }else{ 
     res.status(404)
   }

@@ -1,6 +1,6 @@
 const expressActions = require('express')
 const ActionRouter = expressActions.Router();  
-const functionsActions=require('../services/functions')
+const functionsActions=require('../services/Services')
 
 ActionRouter.post('/email/:domain/disparaemail', function (req,res) {
     const domain=req.params.domain;

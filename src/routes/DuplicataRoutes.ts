@@ -1,7 +1,7 @@
 const expressDuplicatas = require('express')
 const DuplicatasRouter = expressDuplicatas.Router();  
-const functionsDuplicatas=require('../services/functions')
-const duplicfunctions=require('../services/DuplicatasFunctions')
+const functionsDuplicatas=require('../services/Services')
+const DuplicataService=require('../services/DuplicataService')
 
 DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
     const codcli=req.params.codcli
@@ -14,7 +14,7 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
     if(obj){
       //res.status(200)
       //res.json(obj)
-      functionsDuplicatas.DuplicatasAbertas(obj,req, res); 
+      DuplicataService.DuplicatasAbertas(obj,req, res); 
       //console.log(req.body.data.cpfcnpj)  
     }else{ 
       
@@ -58,7 +58,7 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
         if(obj.codrca){
           //res.status(200)
           //res.json(obj)
-          duplicfunctions.GetDuplicRCACliente(req, res, obj); 
+          DuplicataService.GetDuplicRCACliente(req, res, obj); 
           //console.log(req.body.data.cpfcnpj)  
         }else{ 
           
@@ -79,7 +79,7 @@ DuplicatasRouter.get('/duplic/codcli/:codcli', function (req,res) {
         if(obj.codrca){
           //res.status(200)
           //res.json(obj)
-          duplicfunctions.getDuplicAbertoRca(req, res, obj); 
+          DuplicataService.getDuplicAbertoRca(req, res, obj); 
           //console.log(req.body.data.cpfcnpj)  
         }else{ 
           res.status(404)

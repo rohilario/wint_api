@@ -1,6 +1,6 @@
 const expressLogistic = require('express')
 const LogisticRouter = expressLogistic.Router();
-const functionsLogistic=require('../services/functions')
+const LogisticService=require('../services/Services')
 
 //GET PRODUTOS OS POR OS
 LogisticRouter.get('/os/numos/:numos', function (req,res) {
@@ -15,7 +15,7 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
     if(codfilial){
       //res.json(obj)
       res.status(200)
-      functionsLogistic.getOs1759(obj,req, res);   
+      LogisticService.getOs1759(obj,req, res);   
     }else{ 
       res.json({"UPDATE OS":codfilial})
       res.status(404)
@@ -36,7 +36,7 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
     if(codfilial){
       //res.json(obj)
       res.status(200)
-      functionsLogistic.getOsNumcar1759(obj,req, res);   
+      LogisticService.getOsNumcar1759(obj,req, res);   
     }else{ 
       res.json({"UPDATE OS":codfilial})
       res.status(404)
@@ -51,7 +51,7 @@ LogisticRouter.get('/os/numos/:numos', function (req,res) {
       const obj={numcar:numcar,codfunc:codfunc}
       //res.json(obj)
       console.log(obj)
-      functionsLogistic.FinalizaOS1759(obj,req,res);
+      LogisticService.FinalizaOS1759(obj,req,res);
       //res.json("DADOS ATUALIZADOS COM SUCESSO!")
       })
       

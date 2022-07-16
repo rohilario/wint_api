@@ -1,6 +1,6 @@
 const expressPrecificacao = require('express');
 const PrecificacaoRouter = expressPrecificacao.Router();  
-const helpers=require('../services/PrecificacaoFunctions')
+const PrecificacaoService=require('../services/PrecificacaoService')
 
 PrecificacaoRouter.post('/regiao/:regiao/:codprod', function (req,res) {
     const regiao=req.params.regiao
@@ -10,7 +10,7 @@ PrecificacaoRouter.post('/regiao/:regiao/:codprod', function (req,res) {
     if(obj.pvenda){
       //res.json(obj)
       //res.status(200)
-      //helpers.AtualizaPrecoVenda(obj,req,res)
+      //PrecificacaoService.AtualizaPrecoVenda(obj,req,res)
     }else{ 
       res.json({"ERROR":obj.pvenda})
       res.status(404)

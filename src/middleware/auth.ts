@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const helper = require('../services/functions')
+const helper = require('../services/Services')
 
 async function validUser(req,res,params){
   let user = await helper.getUserAuth(req,res,params)

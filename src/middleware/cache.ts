@@ -1,12 +1,12 @@
 const redis = require('redis')
 
-//let redisClient;
 async function createRedisConnection() {
   const redisClient = redis.createClient();
   return redisClient ;
 }
+
 async function verifyCache(req, res, next) {
-  let CacheKey = req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
+  let CacheKey = req.hostname+'_'+req.method+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
   let results;
   try {
     const redisClient = await createRedisConnection();
@@ -33,14 +33,15 @@ async function verifyCache(req, res, next) {
   }
 }
 
-async function setChache(key,value){
+async function setChache(req,res,value){
+  let CacheKey = req.hostname+'_'+req.method+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
   try{
     const redisClient = redis.createClient(); 
     redisClient.on("error", (error) => console.error(`Error : ${error}`));
     await redisClient.connect();
     console.log('REDIS CONECTADO COM SUCESSO! -- SET KEY VALUE')
-    await redisClient.set(key, JSON.stringify(value), {
-        EX: 180,
+    await redisClient.set(CacheKey, JSON.stringify(value), {
+        EX: 60,
         NX: true,
     });
     console.log('CACHE GERADO COM SUCESSO')

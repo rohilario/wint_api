@@ -1,6 +1,6 @@
 const expressClientes = require('express')
 const ClienteRouter = expressClientes.Router();  
-const clientefunctions=require('../services/ClientesFunctions')
+const ClientService=require('../services/ClientService')
 const AppDataSource=require("../config/data-source");
 
       //ENDPOINT PARA BUSCAR DUPLICATAS POR RCA
@@ -17,7 +17,7 @@ const AppDataSource=require("../config/data-source");
         if(obj.codrca){
           //res.status(200)
           //res.json(obj)
-          clientefunctions.getClienteRca(req, res, obj); 
+          ClientService.getClienteRca(req, res, obj); 
           //console.log(req.body.data.cpfcnpj)  
         }else{ 
           

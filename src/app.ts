@@ -101,6 +101,7 @@ app.listen(port);
 
 //ESTABELE UMA CONEXAO COM O BANCO ORACLE - WINTHOR
 connection.initOracleDbConection();
+
 //CHECA A CONEXAO JA REUTILIZANDO DO SPOOL CRIADO
 //connection.checkConnection();
 

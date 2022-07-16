@@ -1,12 +1,12 @@
 const expressPixBradesco = require('express')
 const PixBradescoRouter = expressPixBradesco.Router();  
-const functionsPixBradesco=require('../services/PixBradescoFunctions')
-const functions_pix=require('../services/functions')
+const PixBradescoService=require('../services/PixBradescoService')
+const PixService=require('../services/Services')
 
 
 PixBradescoRouter.get('/token', function (req,res) {
 
-    functionsPixBradesco.GetTokenBradesco(req, res); 
+    PixBradescoService.GetTokenBradesco(req, res); 
 
 })
 
@@ -55,7 +55,7 @@ if(cpfcnpj.length==11){
         }  
 }
     
-functionsPixBradesco.RegistraPix(req,res,dados, authorization); 
+PixBradescoService.RegistraPix(req,res,dados, authorization); 
 
 })
 
@@ -66,7 +66,7 @@ PixBradescoRouter.get('/pagamentos/:txid', function (req,res) {
     const authorization=req.headers.authorization
     console.log('TXID: ' + txid)
 
-    functionsPixBradesco.getPagamentoPixId(req, res, authorization, txid); 
+    PixBradescoService.getPagamentoPixId(req, res, authorization, txid); 
 
 })
 
@@ -74,13 +74,13 @@ PixBradescoRouter.get('/webhook/cadastrar/:key', function(req,res){
     const key=req.params.key
     const authorization=req.headers.authorization
     console.log(key)
-    functionsPixBradesco.InsertWebhookPix(req,res,key,authorization)
+    PixBradescoService.InsertWebhookPix(req,res,key,authorization)
 })
 
 PixBradescoRouter.get('/webhook/notification', function(req,res){
     const request=req.body
     console.log(request)
-    functions_pix.InsertPixNotification(req,res,request)
+    PixService.InsertPixNotification(req,res,request)
 })
         
 //module.exports=PixBradescoRoutes
