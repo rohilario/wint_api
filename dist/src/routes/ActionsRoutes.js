@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressActions = require('express');
 const ActionRouter = expressActions.Router();
 const functionsActions = require('../services/functions');
@@ -66,4 +67,5 @@ ActionRouter.post('/email/:domain/disparaemail', function (req, res) {
         res.status(500);
     }
 });
-module.exports = ActionRouter;
+//module.exports=ActionRouter
+exports.default = ActionRouter;

@@ -1,8 +1,8 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressRegistration = require('express');
 const RegistrationRouter = expressRegistration.Router();
 const functionsRegistration = require('../services/functions');
-const cache_registration = require('../services/cache');
 //GET FUNC POR FILIAL
 RegistrationRouter.get('/func/:codfilial/:matricula', function (req, res) {
     const matricula = req.params.matricula;
@@ -89,8 +89,9 @@ RegistrationRouter.get('/cliente/nome/:nome', function (req, res) {
     }
 });
 //GET CLIENTE ATIVOS
-RegistrationRouter.get('/clientes', cache_registration.cacheData, function (req, res, next) {
+RegistrationRouter.get('/clientes', function (req, res, next) {
     const key = 'TESTE';
     functionsRegistration.getClientes(req, res);
 });
-module.exports = RegistrationRouter;
+//module.exports=RegistrationRouter
+exports.default = RegistrationRouter;

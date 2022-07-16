@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressPedidos = require('express');
 const PedidosRouter = expressPedidos.Router();
 const functionsPedidos = require('../services/functions');
@@ -111,4 +112,4 @@ PedidosRouter.post('/liberacao/codfilial/:codfilial/:numped', function (req, res
         res.status(404);
     }
 });
-module.exports = PedidosRouter;
+exports.default = PedidosRouter;

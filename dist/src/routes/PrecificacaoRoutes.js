@@ -1,8 +1,9 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressPrecificacao = require('express');
-const PrecificacaoRoutes = expressPrecificacao.Router();
+const PrecificacaoRouter = expressPrecificacao.Router();
 const helpers = require('../services/PrecificacaoFunctions');
-PrecificacaoRoutes.post('/regiao/:regiao/:codprod', function (req, res) {
+PrecificacaoRouter.post('/regiao/:regiao/:codprod', function (req, res) {
     const regiao = req.params.regiao;
     const codprod = req.params.codprod;
     const pvenda = req.body.pvenda;
@@ -17,4 +18,5 @@ PrecificacaoRoutes.post('/regiao/:regiao/:codprod', function (req, res) {
         res.status(404);
     }
 });
-module.exports = PrecificacaoRoutes;
+//module.exports=PrecificacaoRouter
+exports.default = PrecificacaoRouter;

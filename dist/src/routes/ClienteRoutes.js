@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressClientes = require('express');
 const ClienteRouter = expressClientes.Router();
 const clientefunctions = require('../services/ClientesFunctions');
@@ -40,4 +41,5 @@ ClienteRouter.get('/teste', function (req, res) {
         console.log(users);
     });
 });
-module.exports = ClienteRouter;
+//module.exports=ClienteRouter;
+exports.default = ClienteRouter;

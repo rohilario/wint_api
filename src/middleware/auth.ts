@@ -2,11 +2,10 @@ const jwt = require('jsonwebtoken');
 const helper = require('../services/functions')
 
 async function validUser(req,res,params){
-  
   let user = await helper.getUserAuth(req,res,params)
-
   if(params.usr || params.pass){
     console.log('VALIDANDO SENHA..')
+    //console.log(user)
     if(params.usr===user[0].nome || params.pass===user[0].pass){
       console.log('SENHA VALIDADA COM SUCESSO!')
       console.log('GERANDO TOKEN...')
@@ -23,9 +22,7 @@ async function validUser(req,res,params){
 }
 
 async function validUserRCA(req,res,params){
-  
   let user = await helper.getRCAAuth(req,res,params)
-
   if(params.usr || params.pass){
     console.log('VALIDANDO SENHA..')
     if(params.usr===user[0].email || params.pass===user[0].pass){
@@ -39,8 +36,9 @@ async function validUserRCA(req,res,params){
       
     }
   }else{
-    res.json({"ERROR":"PARAMETROS NAO INFORMADOS CORRETAMENTE"});res.status(404)
-    console.log('PARAMETROS NAO INFORMADOS')
+    res.json({"ERROR":"PARAMETROS NAO INFORMADOS CORRETAMENTE"});
+    res.status(404);
+    console.log('PARAMETROS NAO INFORMADOS');
   }
 
 }
@@ -52,30 +50,28 @@ function CreateJWT(params,req,res){
     });
     console.log('TOKEN GERADO COM SUCESSO!')
     return res.json({ auth: true, token: token, codrca:params.pass || params.matricula, nome:params.nome });
-    
   }
 
 //Autorização
 function verifyJWT(req, res, next){
+  console.log('VALIDANDO TOKEN')
     var token = req.headers['x-access-token'];
-    console.log(token)
-    if (!token) return res.status(401).json({ auth: false, message: 'No token provided.' });
-    
+    //console.log(token)
+    if (!token) return res.status(401).json({ auth: false, message: 'NO TOKEN PROVIDED.' });
+    console.log('NO TOKEN PROVIDED')
     jwt.verify(token, process.env.SECRET, function(err, decoded) {
-      if (err) return res.status(500).json({ auth: false, message: 'Failed to authenticate token.' });
-      
-      // se tudo estiver ok, salva no request para uso posterior
+      if(err){ 
+        console.log('TOKEN INVALIDO')
+        return res.status(500).json({ auth: false, message: 'TOKEN INVALIDO' })
+      }else{
+        console.log('TOKEN AUTENTICADO COM SUCESSO')
+        //return res.status(200).json({ auth: true, message: 'TOKEN AUTENTICADO COM SUCESSO.' })
+      }
+      //se tudo estiver ok, salva no request para uso posterior
       req.userId = decoded.id;
       next();
     });
 }
-
-/*module.exports={
-    verifyJWT:verifyJWT,
-    CreateJWT:CreateJWT,
-    validUser:validUser,
-    validUserRCA:validUserRCA
-}*/
 
 export default {
   verifyJWT:verifyJWT,

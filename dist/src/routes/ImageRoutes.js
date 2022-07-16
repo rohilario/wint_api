@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressImages = require('express');
 const ImagesRouter = expressImages.Router();
 const functionsImages = require('../services/functions');
@@ -58,4 +59,5 @@ ImagesRouter.get('/produto/:productfolder/:codprod', function (req, res, next) {
         }
     });
 });
-module.exports = ImagesRouter;
+//module.exports=ImagesRouter
+exports.default = ImagesRouter;

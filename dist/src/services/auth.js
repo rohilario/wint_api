@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const jwt = require('jsonwebtoken');
 const helper = require('../services/functions');
 function validUser(req, res, params) {
@@ -78,7 +79,13 @@ function verifyJWT(req, res, next) {
         next();
     });
 }
-module.exports = {
+/*module.exports={
+    verifyJWT:verifyJWT,
+    CreateJWT:CreateJWT,
+    validUser:validUser,
+    validUserRCA:validUserRCA
+}*/
+exports.default = {
     verifyJWT: verifyJWT,
     CreateJWT: CreateJWT,
     validUser: validUser,

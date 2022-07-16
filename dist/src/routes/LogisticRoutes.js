@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressLogistic = require('express');
 const LogisticRouter = expressLogistic.Router();
 const functionsLogistic = require('../services/functions');
@@ -52,4 +53,4 @@ LogisticRouter.put('/finalizaos1759/os/numcar/:numcar', function (req, res) {
     functionsLogistic.FinalizaOS1759(obj, req, res);
     //res.json("DADOS ATUALIZADOS COM SUCESSO!")
 });
-module.exports = LogisticRouter;
+exports.default = LogisticRouter;

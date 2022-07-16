@@ -1465,7 +1465,7 @@ function getClientes(req, res) {
                         cgcent: newsql[2]
                     };
                 });
-                console.log(doubles);
+                //console.log(doubles)
                 return res.send(doubles);
             }
         }

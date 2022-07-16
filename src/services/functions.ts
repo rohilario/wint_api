@@ -6,7 +6,7 @@ const axios = require('axios');
 
   //GET USER WINTHOR POR NOME
   async function getUserAuth(req, res, auth){
-    //console.log(auth)
+    //console.log(auth.usr)
     
     try {
       var connection = await oracledb_Functions.getConnection({
@@ -18,7 +18,7 @@ const axios = require('axios');
       const result = await connection.execute(`SELECT R.NOME,R.NOME_GUERRA,DECRYPT(R.SENHABD,:1),R.MATRICULA FROM PCEMPR R WHERE 
       R.USUARIOBD=:1 --AND LTRIM(RTRIM(UPPER(R.USUARIOBD))) = :1
       AND R.DT_EXCLUSAO IS NULL AND R.SITUACAO='A' AND R.CODSETOR=8 AND R.USUARIOBD=:1`,[auth.usr]);
-  
+      //console.log(result)
       if (result.rows.length == 0) {
         //query return zero employees
         return [{nome:null,pass:null,msg:'NAO FOI LOCALIZADO NENHUM REGISTRO PARA OS PARAMETROS INFORMADOS'}]//res.json('NENHUM REGISTRO ENCONTRADO -- GET CLIENTE NOME');
@@ -1395,7 +1395,7 @@ async function getClientes(req, res){
                   cgcent:newsql[2]
           }
       })
-      console.log(doubles)
+      //console.log(doubles)
       return res.send(doubles);
     }
   } catch (err) {

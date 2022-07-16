@@ -8,15 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const redisClient = require("redis");
+Object.defineProperty(exports, "__esModule", { value: true });
+const redis = require('redis');
 //let redisClient;
-function cacheData(req, res, next) {
+function verifyCache(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        const CacheKey = req.params.cachekey;
+        let CacheKey = 'teste';
         let results;
         try {
+            const redisClient = redis.createClient();
+            redisClient.on("error", (error) => console.error(`Error : ${error}`));
+            yield redisClient.connect();
+            console.log('REDIS CONECTADO COM SUCESSO!');
             const cacheResults = yield redisClient.get(CacheKey);
+            console.log(cacheResults);
             if (cacheResults) {
+                console.log('CACHE REDIS ENCONTRADO');
                 results = JSON.parse(cacheResults);
                 res.send({
                     fromCache: true,
@@ -24,6 +31,7 @@ function cacheData(req, res, next) {
                 });
             }
             else {
+                console.log('CONSULTA SEM REDIS CACHE');
                 next();
             }
         }
@@ -33,6 +41,21 @@ function cacheData(req, res, next) {
         }
     });
 }
-module.exports = {
-    cacheData: cacheData
-};
+function setChache(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const redisClient = redis.createClient();
+            redisClient.on("error", (error) => console.error(`Error : ${error}`));
+            yield redisClient.connect();
+            console.log('REDIS CONECTADO COM SUCESSO!');
+        }
+        catch (error) {
+            console.error(error);
+            res.status(404);
+        }
+    });
+}
+exports.default = { verifyCache, setChache };
+/*module.exports={
+  cacheData:cacheData
+}*/

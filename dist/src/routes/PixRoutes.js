@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressPix = require('express');
 const PixRouter = expressPix.Router();
 const functionsPix = require('../services/functions');
@@ -140,4 +141,5 @@ PixRouter.post('/baixa_teste', function (req, res) {
         res.status(404);
     }
 });
-module.exports = PixRouter;
+//module.exports=PixRouter
+exports.default = PixRouter;

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressDuplicatas = require('express');
 const DuplicatasRouter = expressDuplicatas.Router();
 const functionsDuplicatas = require('../services/functions');
@@ -77,4 +78,5 @@ DuplicatasRouter.get('/aberto/codrca/:codrca', function (req, res) {
         res.status(404);
     }
 });
-module.exports = DuplicatasRouter;
+//module.exports=DuplicatasRouter;
+exports.default = DuplicatasRouter;

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const express = require('express');
 const SmarketingRouter = express.Router();
 const functions = require('../services/SmarketingFunctions');
@@ -35,4 +36,5 @@ SmarketingRouter.get('/cupom', function (req, res) {
 SmarketingRouter.get('/metas', function (req, res) {
     functions.getMetas(req, res);
 });
-module.exports = SmarketingRouter;
+//module.exports=SmarketingRouter
+exports.default = SmarketingRouter;

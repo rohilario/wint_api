@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressAuth = require('express');
 const AuthRouter = expressAuth.Router();
 const functionsAuth = require('../services/auth');
@@ -17,4 +18,5 @@ AuthRouter.post('/rca/token/create', function (req, res) {
     //console.log(req.body)
     functionsAuth.validUserRCA(req, res, auth);
 });
-module.exports = AuthRouter;
+//module.exports=AuthRouter
+exports.default = AuthRouter;

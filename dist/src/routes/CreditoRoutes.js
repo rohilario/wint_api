@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressCreditos = require('express');
 const CreditoRouter = expressCreditos.Router();
 const functionsCreditos = require('../services/functions');
@@ -18,4 +19,5 @@ CreditoRouter.post('/listar/codcli/:codcli/', function (req, res) {
         res.status(404);
     }
 });
-module.exports = CreditoRouter;
+//module.exports=CreditoRouter
+exports.default = CreditoRouter;

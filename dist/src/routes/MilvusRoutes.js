@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const expressMilvus = require('express');
 const MilvusRouter = expressMilvus.Router();
 const functionsmilvus = require('../services/functions');
@@ -15,4 +16,5 @@ MilvusRouter.get('/chamados', function (req, res) {
         res.status(404);
     }
 });
-module.exports = MilvusRouter;
+//module.exports=MilvusRouter
+exports.default = MilvusRouter;

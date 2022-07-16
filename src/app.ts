@@ -1,21 +1,25 @@
 import express, { Express, Request, Response } from 'express';
-//const app = express();
 import bodyParser from 'body-parser';
-//require('dotenv/config');
 require('dotenv').config({path: process.env.NODE_ENV === "test" ? ".env.test" : ".env"})
-//const oracledb = require('oracledb');
 import fileUpload from 'express-fileupload';
-const port = process.env.PORT;
 import swaggerUi from 'swagger-ui-express';
-
 import connection from './config/connection';
 import AppDataSource  from "./config/data-source"
 import "reflect-metadata"
 const swaggerFile = require('../swagger_output');
-import JWT from './services/auth';
-const router = express.Router();
-import redis from "redis";
+import JWT from './middleware/auth';
+//import redis from "redis";
+const redis = require('redis')
 import morgan from 'morgan';
+import cacheData from './middleware/cache' 
+
+
+//CONFIGURANDO PORTA DA APLICACAO
+const port = process.env.PORT;
+//CONFIGURANDO EXPRESS
+const app: Express = express();
+//CONFIGURANDO O ROUTER PARA ROTA PADRAO
+const router = express.Router();
 
 //IMPORTANDO ROTAS
 import LogistcRoutes from './routes/LogisticRoutes';
@@ -32,8 +36,6 @@ import SmarketingRouter from './routes/SmarketingRoutes';
 import PixBradescoRoutes from './routes/PixBradescoRoutes';
 import PrecificacaoRoutes from './routes/PrecificacaoRoutes';
 import ClienteRoutes from './routes/ClienteRoutes';
-
-const app: Express = express();
 
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -65,12 +67,11 @@ app.use(function (req, res, next) {
 app.use(morgan("tiny"));
 
 //definindo as rotas
-
 app.use('/',router);
 app.use('/auth',AuthRouter);
 app.use('/actions',JWT.verifyJWT,ActionRouter)
 app.use('/logistica',JWT.verifyJWT, LogistcRoutes);
-app.use('/cadastro',JWT.verifyJWT, ResgistrationRoutes);
+app.use('/cadastro',JWT.verifyJWT,cacheData.verifyCache,ResgistrationRoutes);
 app.use('/pedidos',JWT.verifyJWT, PedidosRouter);
 app.use('/pix',JWT.verifyJWT, PixRouter);
 app.use('/duplicatas',JWT.verifyJWT, DuplicatasRouter);
@@ -81,18 +82,17 @@ app.use('/smarketing',JWT.verifyJWT,SmarketingRouter);
 app.use('/pix/bradesco',JWT.verifyJWT,PixBradescoRoutes);
 app.use('/precificacao',JWT.verifyJWT,PrecificacaoRoutes);
 app.use('/clientes',JWT.verifyJWT,ClienteRoutes);
-
-//SWAGGER DOCUMENTATTION
+//SWAGGER DOCUMENTATTION ROUTER
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
-// Resposta padrão para quaisquer outras requisições:
+//DEFAULT RESPONSE FOR OTHER ROUTES
 app.use((req: Request, res: Response) => {
     res.status(404)
 })
 
-
-//INICIA O SERVIDOR
+//INICIA O SERVIDOR 
 app.listen(port);
+
 (async () => {
     const redisClient = redis.createClient();  
     redisClient.on("error", (error) => console.error(`Error : ${error}`));
@@ -102,11 +102,9 @@ app.listen(port);
 
 //ESTABELE UMA CONEXAO COM O BANCO ORACLE - WINTHOR
 connection.initOracleDbConection();
-
 //CHECA A CONEXAO JA REUTILIZANDO DO SPOOL CRIADO
 //connection.checkConnection();
 
-//console.log(AppDataSource)
 
 //CONSOLE LOG DO START
 console.log("-------------------------------------------------------------------------------------------------------------------------------------");

@@ -1,17 +1,14 @@
 const expressAuth = require('express')
 const AuthRouter = expressAuth.Router();  
-const functionsAuth=require('../services/auth')
+//const functionsAuth=require('../services/auth')
+import authFuntions from '../middleware/auth'
 
 
-AuthRouter.post('/token/create2', function (req,res) {
+AuthRouter.post('/token/create', function (req,res) {
   const usr=req.body.usr;
   const pass=req.body.pass
   const auth={usr:usr,pass:pass}
-
-  console.log(auth)
-  console.log('teste')
-
-  //functionsAuth.validUser(req,res,auth)
+  authFuntions.validUser(req,res,auth)
 
 })
 
@@ -22,8 +19,12 @@ AuthRouter.post('/rca/token/create', function (req,res) {
 
   //console.log(req.body)
 
-  functionsAuth.validUserRCA(req,res,auth)
+  authFuntions.validUserRCA(req,res,auth)
 
+})
+
+AuthRouter.get('/token/autenticate', authFuntions.verifyJWT,function (req,res) {
+  
 })
 
 //module.exports=AuthRouter
