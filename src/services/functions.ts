@@ -3,6 +3,7 @@ const fs_Functions = require('fs');
 const path_Functions = require('path');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
+import cache from '../middleware/cache'
 
   //GET USER WINTHOR POR NOME
   async function getUserAuth(req, res, auth){
@@ -1377,6 +1378,7 @@ async function getClienteNome(parameter,req, res){
 
 //GET CLIENTE WINTHOR POR CODCLI
 async function getClientes(req, res){
+  const key=req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
   try {
     var connection = await oracledb_Functions.getConnection('appspool');
 
@@ -1395,7 +1397,7 @@ async function getClientes(req, res){
                   cgcent:newsql[2]
           }
       })
-      //console.log(doubles)
+      cache.setChache(key,doubles)
       return res.send(doubles);
     }
   } catch (err) {

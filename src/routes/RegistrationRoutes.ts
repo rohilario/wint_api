@@ -4,6 +4,7 @@ const functionsRegistration=require('../services/functions')
 //const cache_registration = require('../services/cache');
 import CacheRegistration from '../middleware/cache' 
 
+
   //GET FUNC POR FILIAL
   RegistrationRouter.get('/func/:codfilial/:matricula', function (req,res) {
     const matricula=req.params.matricula
@@ -94,9 +95,11 @@ RegistrationRouter.post('/produt/codprod', function (req,res) {
     })
 
       //GET CLIENTE ATIVOS
-      RegistrationRouter.get('/clientes', function (req,res,next) {     
-        const key = 'TESTE'
-;        functionsRegistration.getClientes(req, res);   
+      RegistrationRouter.get('/clientes',CacheRegistration.verifyCache, function (req,res) {   
+        console.log(req.hostname+'_'+req.baseUrl+req.route.path+'_'+req.headers['x-access-token']);
+        const key=req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token']
+        functionsRegistration.getClientes(req,res);   
+        //res.send(req.hostname+'_'+req.baseUrl+req.route.path+'.'+req.headers['x-access-token'])
         })
 
 //module.exports=RegistrationRouter

@@ -11,7 +11,6 @@ import JWT from './middleware/auth';
 //import redis from "redis";
 const redis = require('redis')
 import morgan from 'morgan';
-import cacheData from './middleware/cache' 
 
 
 //CONFIGURANDO PORTA DA APLICACAO
@@ -71,7 +70,7 @@ app.use('/',router);
 app.use('/auth',AuthRouter);
 app.use('/actions',JWT.verifyJWT,ActionRouter)
 app.use('/logistica',JWT.verifyJWT, LogistcRoutes);
-app.use('/cadastro',JWT.verifyJWT,cacheData.verifyCache,ResgistrationRoutes);
+app.use('/cadastro',JWT.verifyJWT,ResgistrationRoutes);
 app.use('/pedidos',JWT.verifyJWT, PedidosRouter);
 app.use('/pix',JWT.verifyJWT, PixRouter);
 app.use('/duplicatas',JWT.verifyJWT, DuplicatasRouter);

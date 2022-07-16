@@ -57,9 +57,12 @@ function verifyJWT(req, res, next){
   console.log('VALIDANDO TOKEN')
     var token = req.headers['x-access-token'];
     //console.log(token)
-    if (!token) return res.status(401).json({ auth: false, message: 'NO TOKEN PROVIDED.' });
-    console.log('NO TOKEN PROVIDED')
-    jwt.verify(token, process.env.SECRET, function(err, decoded) {
+    if (!token){
+      console.log('NO TOKEN PROVIDED')
+      return res.status(401).json({ auth: false, message: 'NO TOKEN PROVIDED.' });
+    }else{
+    
+      jwt.verify(token, process.env.SECRET, function(err, decoded) {
       if(err){ 
         console.log('TOKEN INVALIDO')
         return res.status(500).json({ auth: false, message: 'TOKEN INVALIDO' })
@@ -71,6 +74,8 @@ function verifyJWT(req, res, next){
       req.userId = decoded.id;
       next();
     });
+
+  }
 }
 
 export default {
